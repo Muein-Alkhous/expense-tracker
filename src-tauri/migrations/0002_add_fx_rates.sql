@@ -1,0 +1,1 @@
+-- FX rates table for multi-currency conversion (see spec sections 9.14 and 11.6).

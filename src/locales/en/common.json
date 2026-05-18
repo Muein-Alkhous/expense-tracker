@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "Expense Tracker"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "expenses": "Expenses",
+    "categories": "Categories",
+    "budgets": "Budgets",
+    "reports": "Reports",
+    "settings": "Settings"
+  }
+}

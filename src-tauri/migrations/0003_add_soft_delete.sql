@@ -1,0 +1,1 @@
+-- Soft-delete columns (deleted_at) and v_*_active filtered views (see spec section 11.8).

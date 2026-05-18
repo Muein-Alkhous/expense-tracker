@@ -1,0 +1,2 @@
+-- Initial schema: expenses, categories, budgets, recurring_rules, settings.
+-- See spec sections 11.1 - 11.5.
