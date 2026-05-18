@@ -7,13 +7,16 @@ export interface Expense {
   category_id: string;
   date: string;
   note?: string;
-  payment_method?: string;
+  payment_method?: PaymentMethod;
+  tags?: string[];
   is_recurring: boolean;
   recurrence_id?: string;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
 }
+
+export type PaymentMethod = "cash" | "card" | "bank" | "other";
 
 export interface Category {
   id: string;
