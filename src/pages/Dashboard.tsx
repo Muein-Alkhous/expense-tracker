@@ -6,6 +6,7 @@ import ExpenseRow from "@/components/ExpenseRow";
 import { formatMinor } from "@/lib/money";
 import { isThisMonth, isThisWeek } from "@/lib/date";
 import { CATEGORIES, useExpenses } from "@/store/expenses";
+import { useUi } from "@/store/ui";
 
 const BASE_CURRENCY = "USD";
 
@@ -17,6 +18,7 @@ const BUDGETS: { categoryId: string; limitMinor: number }[] = [
 
 export default function Dashboard() {
   const items = useExpenses((s) => s.items);
+  const setCurrentPage = useUi((s) => s.setCurrentPage);
 
   const stats = useMemo(() => {
     const monthExpenses = items.filter((e) => isThisMonth(e.date));
@@ -136,7 +138,12 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
               Recent transactions
             </h2>
-            <button className="text-xs font-medium text-accent hover:underline">View all</button>
+            <button
+              onClick={() => setCurrentPage("expenses")}
+              className="text-xs font-medium text-accent hover:underline"
+            >
+              View all
+            </button>
           </header>
           <table className="w-full">
             <thead>

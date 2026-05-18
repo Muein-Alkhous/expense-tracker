@@ -1,13 +1,14 @@
 // App shell: persistent sidebar + content area, plus the global Add Expense modal.
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import AddExpenseModal from "@/components/AddExpenseModal";
 import Dashboard from "@/pages/Dashboard";
-import { useUi } from "@/store/ui";
+import Expenses from "@/pages/Expenses";
+import { useUi, type PageId } from "@/store/ui";
 
-const PAGE_TITLES: Record<string, string> = {
+const PAGE_TITLES: Record<PageId, string> = {
   dashboard: "Dashboard",
   expenses: "Expenses",
   categories: "Categories",
@@ -17,7 +18,8 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export default function App() {
-  const [active, setActive] = useState("dashboard");
+  const currentPage = useUi((s) => s.currentPage);
+  const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openAddExpense = useUi((s) => s.openAddExpense);
 
   useEffect(() => {
@@ -33,15 +35,15 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
-      <Sidebar activeId={active} onNavigate={setActive} />
+      <Sidebar activeId={currentPage} onNavigate={(id) => setCurrentPage(id as PageId)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar title={PAGE_TITLES[active] ?? "Expense Tracker"} />
+        <TopBar title={PAGE_TITLES[currentPage]} />
         <main className="flex-1 overflow-y-auto">
-          {active === "dashboard" ? (
-            <Dashboard />
-          ) : (
+          {currentPage === "dashboard" && <Dashboard />}
+          {currentPage === "expenses" && <Expenses />}
+          {currentPage !== "dashboard" && currentPage !== "expenses" && (
             <div className="p-8 text-sm text-neutral-500">
-              {PAGE_TITLES[active]} is coming soon.
+              {PAGE_TITLES[currentPage]} is coming soon.
             </div>
           )}
         </main>
