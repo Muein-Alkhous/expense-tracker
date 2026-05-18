@@ -110,20 +110,13 @@ export default function AddExpenseModal() {
       }
     >
       <form onSubmit={handleSave} className="space-y-5">
-        <div className="flex items-stretch overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent">
-          <CurrencySelect value={currency} onChange={setCurrency} />
-          <input
-            ref={amountRef}
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="flex-1 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
-          />
-        </div>
+        <AmountField
+          amount={amount}
+          onAmountChange={setAmount}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          amountRef={amountRef}
+        />
 
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
@@ -228,57 +221,86 @@ export default function AddExpenseModal() {
   );
 }
 
-interface CurrencySelectProps {
-  value: string;
-  onChange: (next: string) => void;
+interface AmountFieldProps {
+  amount: string;
+  onAmountChange: (v: string) => void;
+  currency: string;
+  onCurrencyChange: (v: string) => void;
+  amountRef: React.RefObject<HTMLInputElement>;
 }
 
-function CurrencySelect({ value, onChange }: CurrencySelectProps) {
+function AmountField({
+  amount,
+  onAmountChange,
+  currency,
+  onCurrencyChange,
+  amountRef,
+}: AmountFieldProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     }
     if (open) document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Currency"
-        className="inline-flex h-full items-center gap-1.5 border-r border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-      >
-        <span>{value}</span>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          width="12"
-          height="12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-neutral-400"
+    // Outer wrapper is the positioning context for the dropdown.
+    // The inner row uses overflow-hidden so the inner button hover bg follows
+    // the rounded corners; the dropdown is rendered OUTSIDE that row so it
+    // is not clipped.
+    <div ref={wrapperRef} className="relative">
+      <div className="flex items-stretch overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Currency"
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 border-r border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
         >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
+          <span>{currency}</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="12"
+            height="12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-neutral-400"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <input
+          ref={amountRef}
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          min="0"
+          placeholder="0.00"
+          value={amount}
+          onChange={(e) => onAmountChange(e.target.value)}
+          className="flex-1 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+        />
+      </div>
       {open && (
-        <ul className="absolute left-0 top-full z-30 mt-1 min-w-full overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg">
+        <ul className="absolute left-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg">
           {CURRENCIES.map((c) => {
-            const active = c === value;
+            const active = c === currency;
             return (
               <li key={c}>
                 <button
                   type="button"
                   onClick={() => {
-                    onChange(c);
+                    onCurrencyChange(c);
                     setOpen(false);
                   }}
                   className={
