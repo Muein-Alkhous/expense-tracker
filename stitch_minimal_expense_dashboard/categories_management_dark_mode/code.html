@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WealthWire - Categories Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#904900",
+            "surface": "#fcf8f8",
+            "on-tertiary-fixed": "#301400",
+            "on-secondary": "#ffffff",
+            "on-surface": "#1c1b1b",
+            "secondary": "#575992",
+            "primary-fixed": "#e1e0ff",
+            "on-background": "#1c1b1b",
+            "on-secondary-container": "#494b83",
+            "on-tertiary-container": "#fffbff",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#313030",
+            "surface-container-low": "#f6f3f2",
+            "secondary-container": "#bdbefe",
+            "surface-variant": "#e5e2e1",
+            "error": "#ba1a1a",
+            "primary-fixed-dim": "#c0c1ff",
+            "outline": "#767586",
+            "secondary-fixed-dim": "#c0c1ff",
+            "tertiary-fixed": "#ffdcc5",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed-variant": "#703700",
+            "on-primary-container": "#fffbff",
+            "tertiary-fixed-dim": "#ffb783",
+            "secondary-fixed": "#e1e0ff",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#f0edec",
+            "primary": "#4648d4",
+            "on-secondary-fixed-variant": "#404178",
+            "surface-container-highest": "#e5e2e1",
+            "inverse-on-surface": "#f3f0ef",
+            "surface-dim": "#dcd9d9",
+            "on-secondary-fixed": "#13144a",
+            "inverse-primary": "#c0c1ff",
+            "outline-variant": "#c7c4d7",
+            "error-container": "#ffdad6",
+            "on-primary-fixed": "#07006c",
+            "surface-bright": "#fcf8f8",
+            "surface-tint": "#494bd6",
+            "surface-container-lowest": "#ffffff",
+            "primary-container": "#6063ee",
+            "on-tertiary": "#ffffff",
+            "background": "#fcf8f8",
+            "on-surface-variant": "#464554",
+            "surface-container-high": "#ebe7e7",
+            "on-error": "#ffffff",
+            "on-primary-fixed-variant": "#2f2ebe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "content_max_width": "1400px",
+            "stack_md": "16px",
+            "stack_lg": "24px",
+            "stack_sm": "8px",
+            "gutter": "24px",
+            "sidebar_width": "240px",
+            "container_padding": "32px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Inter"],
+            "title-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "display-xl": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-xs": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+            "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "display-xl": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "label-xs": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body { background-color: #0a0a0a; color: #f3f0ef; font-family: 'Inter', sans-serif; }
+    .sidebar-border { border-right: 1px solid #262626; }
+    .header-border { border-bottom: 1px solid #262626; }
+    .row-border { border-bottom: 1px solid #1a1a1a; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .bg-dark-surface { background-color: #0a0a0a; }
+    .bg-dark-card { background-color: #121212; }
+    .border-dark-outline { border-color: #262626; }
+  </script>
+</head>
+<body class="overflow-hidden">
+
+  <!-- SideNavBar -->
+  <aside class="fixed left-0 top-0 h-full w-[240px] bg-dark-surface sidebar-border z-50 flex flex-col py-6">
+    <div class="px-6 mb-10">
+      <h1 class="font-display-xl text-display-xl font-bold text-primary-fixed-dim">WealthWire</h1>
+      <p class="text-on-surface-variant font-body-sm text-label-xs opacity-60">Personal Finance</p>
+    </div>
+    
+    <nav class="flex-1 space-y-1">
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container-highest/10 transition-colors">
+        <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+        <span class="font-body-sm text-body-sm">Dashboard</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container-highest/10 transition-colors">
+        <span class="material-symbols-outlined" data-icon="payments">payments</span>
+        <span class="font-body-sm text-body-sm">Expenses</span>
+      </a>
+      <!-- Active State: Categories -->
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-primary-fixed-dim bg-secondary-container/10 border-l-2 border-primary font-medium">
+        <span class="material-symbols-outlined" data-icon="category">category</span>
+        <span class="font-body-sm text-body-sm">Categories</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container-highest/10 transition-colors">
+        <span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+        <span class="font-body-sm text-body-sm">Budgets</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container-highest/10 transition-colors">
+        <span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+        <span class="font-body-sm text-body-sm">Reports</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container-highest/10 transition-colors">
+        <span class="material-symbols-outlined" data-icon="settings">settings</span>
+        <span class="font-body-sm text-body-sm">Settings</span>
+      </a>
+    </nav>
+
+    <div class="px-6 mt-auto">
+      <button class="w-full bg-primary-container text-white py-2 rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+        <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+        Quick add
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] h-screen flex flex-col">
+    
+    <!-- TopNavBar -->
+    <header class="h-16 px-8 flex justify-between items-center header-border bg-dark-surface/80 backdrop-blur-md sticky top-0 z-40">
+      <div class="flex items-center gap-8">
+        <h2 class="font-headline-lg text-headline-lg font-semibold text-on-surface-variant">Categories</h2>
+        <div class="relative w-64">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-50 text-[20px]" data-icon="search">search</span>
+          <input type="text" placeholder="Search categories..." class="w-full bg-[#121212] border border-[#262626] rounded-lg py-1.5 pl-10 pr-4 text-body-sm focus:border-primary-fixed-dim outline-none transition-all">
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="text-on-surface-variant font-medium text-body-sm hover:text-white transition-colors">Date Range</button>
+        <button class="bg-primary px-4 py-2 rounded-lg text-white font-medium text-body-sm hover:bg-primary-container transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+          + New Category
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Scrollable Category List -->
+      <section class="flex-1 overflow-y-auto p-8">
+        <div class="max-w-3xl space-y-px">
+          
+          <!-- Category Item Builder -->
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            
+            <div class="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="restaurant">restaurant</span>
+            </div>
+            
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Food</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">247 expenses · $1,840 total</p>
+            </div>
+            
+            <div class="flex items-center gap-6">
+              <!-- Custom Toggle -->
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Transport Row -->
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card rounded-lg mb-1 border border-primary/40 ring-1 ring-primary/20">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-40" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="directions_car">directions_car</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-primary-fixed-dim">Transport</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">112 expenses · $920 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Vertical List Items... -->
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Bills</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">12 expenses · $3,150 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-pink-500/20 text-pink-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="shopping_bag">shopping_bag</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Shopping</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">89 expenses · $1,240 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="movie">movie</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Entertainment</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">45 expenses · $560 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="medical_services">medical_services</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Health</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">8 expenses · $890 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="school">school</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Education</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">3 expenses · $1,200 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="home">home</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Rent</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">12 expenses · $12,000 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="savings">savings</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Savings</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">34 expenses · $4,500 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="group flex items-center h-[64px] px-4 bg-dark-card/30 hover:bg-dark-card/60 transition-colors rounded-lg mb-1">
+            <span class="material-symbols-outlined text-on-surface-variant cursor-grab opacity-0 group-hover:opacity-40 transition-opacity" data-icon="drag_indicator">drag_indicator</span>
+            <div class="w-8 h-8 rounded-full bg-gray-500/20 text-gray-500 flex items-center justify-center ml-4 shrink-0">
+              <span class="material-symbols-outlined text-[20px]" data-icon="apps">apps</span>
+            </div>
+            <div class="ml-4 flex-1">
+              <h4 class="font-medium text-on-surface-variant">Other</h4>
+              <p class="text-label-xs text-on-surface-variant opacity-50">156 expenses · $2,300 total</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+                <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+              </div>
+              <button class="text-on-surface-variant opacity-40 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Edit Category Panel (Right Sidebar Side-by-side) -->
+      <aside class="w-[400px] bg-dark-card border-l border-dark-outline p-stack_lg flex flex-col">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="font-headline-lg text-headline-lg text-on-surface-variant">Edit Category</h3>
+          <button class="text-on-surface-variant opacity-60 hover:opacity-100">
+            <span class="material-symbols-outlined" data-icon="close">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 space-y-8 overflow-y-auto pr-2">
+          <!-- Name Input -->
+          <div class="space-y-2">
+            <label class="text-label-xs text-on-surface-variant uppercase tracking-wider opacity-60 font-semibold">Category Name</label>
+            <input type="text" value="Transport" class="w-full bg-[#0a0a0a] border border-[#262626] rounded-xl px-4 py-3 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface-variant">
+          </div>
+
+          <!-- Color Swatches -->
+          <div class="space-y-4">
+            <label class="text-label-xs text-on-surface-variant uppercase tracking-wider opacity-60 font-semibold">Color</label>
+            <div class="grid grid-cols-6 gap-3">
+              <div class="w-full aspect-square rounded-lg bg-orange-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-blue-500 cursor-pointer hover:scale-110 transition-transform ring-2 ring-white ring-offset-2 ring-offset-[#121212]"></div>
+              <div class="w-full aspect-square rounded-lg bg-purple-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-pink-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-cyan-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-red-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-yellow-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-emerald-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-green-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-indigo-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-gray-500 cursor-pointer hover:scale-110 transition-transform"></div>
+              <div class="w-full aspect-square rounded-lg bg-rose-400 cursor-pointer hover:scale-110 transition-transform"></div>
+            </div>
+          </div>
+
+          <!-- Icon Grid -->
+          <div class="space-y-4">
+            <label class="text-label-xs text-on-surface-variant uppercase tracking-wider opacity-60 font-semibold">Icon</label>
+            <div class="grid grid-cols-6 gap-3 p-4 bg-[#0a0a0a] border border-[#262626] rounded-xl">
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="restaurant">restaurant</span>
+              <span class="material-symbols-outlined text-[20px] text-primary p-2 bg-primary/10 rounded-lg cursor-pointer transition-colors" data-icon="directions_car">directions_car</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="receipt_long">receipt_long</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="shopping_bag">shopping_bag</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="movie">movie</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="medical_services">medical_services</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="school">school</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="home">home</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="savings">savings</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="apps">apps</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="flight">flight</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="fitness_center">fitness_center</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="payments">payments</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="local_gas_station">local_gas_station</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="pets">pets</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="gifts">featured_seasonal</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="work">work</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="commute">commute</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="styler">styler</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="coffee">coffee</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="water_drop">water_drop</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="bolt">bolt</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="router">router</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="subscriptions">subscriptions</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="piano">piano</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="landscape">landscape</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="sports_esports">sports_esports</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="checkroom">checkroom</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="palette">palette</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="self_improvement">self_improvement</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="cleaning_services">cleaning_services</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="build">build</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="computer">computer</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="smartphone">smartphone</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="print">print</span>
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant/40 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors" data-icon="cloud">cloud</span>
+            </div>
+          </div>
+
+          <!-- Active Toggle -->
+          <div class="flex items-center justify-between py-4 border-t border-dark-outline">
+            <div>
+              <p class="font-medium text-on-surface-variant">Active Status</p>
+              <p class="text-label-xs text-on-surface-variant opacity-50">Show this category in expense forms</p>
+            </div>
+            <div class="w-12 h-6 bg-primary-container rounded-full relative cursor-pointer">
+              <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-auto flex items-center gap-3 pt-6 border-t border-dark-outline">
+          <button class="flex-1 border border-dark-outline py-2.5 rounded-xl text-on-surface-variant font-medium hover:bg-white/5 transition-colors">Cancel</button>
+          <button class="flex-1 bg-primary py-2.5 rounded-xl text-white font-medium hover:opacity-90 transition-all shadow-lg shadow-primary/20">Save Changes</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+</body>
+</html></style></head><body></body></html>

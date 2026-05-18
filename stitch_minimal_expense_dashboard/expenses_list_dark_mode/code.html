@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WealthWire — Expenses</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "outline": "#767586",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#e1e0ff",
+                        "secondary-container": "#bdbefe",
+                        "surface-tint": "#494bd6",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-surface": "#1c1b1b",
+                        "surface-container": "#f0edec",
+                        "inverse-surface": "#313030",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#464554",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "outline-variant": "#c7c4d7",
+                        "tertiary": "#904900",
+                        "on-tertiary-fixed": "#301400",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "on-secondary-fixed-variant": "#404178",
+                        "on-secondary-fixed": "#13144a",
+                        "inverse-primary": "#c0c1ff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary": "#575992",
+                        "surface": "#fcf8f8",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#494b83",
+                        "surface-container-high": "#ebe7e7",
+                        "primary": "#4648d4",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "on-primary-container": "#fffbff",
+                        "tertiary-container": "#b55d00",
+                        "on-background": "#1c1b1b",
+                        "surface-dim": "#dcd9d9",
+                        "primary-container": "#6063ee",
+                        "secondary-fixed": "#e1e0ff",
+                        "background": "#fcf8f8",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#07006c",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        // Custom additions for "Expenses Dark Mode" requirement
+                        "brand-dark": "#0a0a0a",
+                        "brand-border": "#262626",
+                        "brand-accent": "#6366f1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container_padding": "32px",
+                        "sidebar_width": "240px",
+                        "stack_sm": "8px",
+                        "content_max_width": "1400px",
+                        "gutter": "24px",
+                        "stack_md": "16px",
+                        "stack_lg": "24px"
+                    },
+                    "fontFamily": {
+                        "title-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-xs": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display-xl": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-xs": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-xl": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0a0a0a;
+            color: #fafafa;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 20px;
+        }
+        .tabular { font-variant-numeric: tabular-nums; }
+        .row-hover-action { opacity: 0; transition: opacity 0.15s ease-in-out; }
+        tr:hover .row-hover-action { opacity: 1; }
+    </style>
+</head>
+<body class="antialiased">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[240px] border-r border-brand-border bg-brand-dark flex flex-col py-stack_lg z-50">
+<div class="px-6 mb-10">
+<h1 class="font-display-xl text-display-xl font-bold text-brand-accent">WealthWire</h1>
+<p class="font-body-sm text-body-sm text-outline">Personal Finance</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-brand-border transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-sm text-body-sm">Dashboard</span>
+</a>
+<!-- ACTIVE STATE: Expenses -->
+<a class="flex items-center gap-3 px-6 py-2 text-brand-accent bg-brand-border/40 border-l-2 border-brand-accent transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body-sm text-body-sm">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-brand-border transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-body-sm text-body-sm">Categories</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-brand-border transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-body-sm text-body-sm">Budgets</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-brand-border transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-sm text-body-sm">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-brand-border transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<div class="flex items-center gap-3 py-4 border-t border-brand-border">
+<div class="w-8 h-8 rounded-full bg-brand-accent/20 flex items-center justify-center border border-brand-accent/30 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional close-up headshot of a person with a neutral expression, set against a clean, minimalist studio background. The lighting is soft and high-key, creating a modern, professional aesthetic. The image uses a restrained color palette of cool grays and crisp whites to maintain the UI's focus on clarity and professionalism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXcGVF0udh4V6OyXUvla7vMYryLA2ozAq5FHvH2zUI7WzFQ_BHt-LeM_KVff3bQ2QhVS-Oee2vcl0ZA6-bEHQfzJMWjLYD5r0VI5DHK1uOAw2gJbi35yQO6kTetPxw-KQ3UuTf30QxGxvygYO_BzndOWToQP4WO1iLxEXOgNdkGVhEkbQjT3F5v9Udsrfm3NvJGeHFAPo89SrdIKciW-eVhQGTThSSo8mARq5-pYjGDAHDJf22Fx0tZF71EXkisvWcwmd83CJ6K2rn"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-white">Alex Rivera</span>
+<span class="font-label-xs text-label-xs text-outline">Pro Plan</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="ml-[240px] min-h-screen flex flex-col">
+<!-- TOP NAVBAR -->
+<header class="sticky top-0 z-40 w-full bg-brand-dark/80 backdrop-blur-md border-b border-brand-border">
+<div class="flex justify-between items-center h-16 px-container_padding">
+<h2 class="font-headline-lg text-headline-lg font-semibold text-white">Expenses</h2>
+<div class="flex items-center gap-stack_md">
+<button class="px-4 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-lg font-title-md text-title-md transition-all active:scale-[0.98]">
+                        Add Expense
+                    </button>
+</div>
+</div>
+<!-- FILTER BAR -->
+<div class="px-container_padding pb-4">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-brand-border/30 border border-brand-border rounded-xl pl-10 pr-4 py-2 text-body-sm font-body-sm focus:outline-none focus:ring-1 focus:ring-brand-accent text-white placeholder:text-outline" placeholder="Search notes, categories, amounts..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 bg-brand-border/50 border border-brand-border rounded-lg text-body-sm font-body-sm hover:bg-brand-border transition-colors">
+                            All categories <span class="material-symbols-outlined text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-brand-border/50 border border-brand-border rounded-lg text-body-sm font-body-sm hover:bg-brand-border transition-colors">
+                            This month <span class="material-symbols-outlined text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-brand-border/50 border border-brand-border rounded-lg text-body-sm font-body-sm hover:bg-brand-border transition-colors">
+                            All payment methods <span class="material-symbols-outlined text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-brand-border/50 border border-brand-border rounded-lg text-body-sm font-body-sm hover:bg-brand-border transition-colors">
+                            All currencies <span class="material-symbols-outlined text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="text-brand-accent font-body-sm text-body-sm px-2 hover:underline">Clear</button>
+</div>
+</div>
+<div class="mt-4 text-label-xs font-label-xs text-outline">
+                    Showing 47 expenses · Total: <span class="text-white">$2,847.32 USD</span>
+</div>
+</div>
+</header>
+<!-- CONTENT CANVAS -->
+<div class="flex-1 px-container_padding py-stack_lg max-w-content_max_width">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-outline border-b border-brand-border">
+<th class="pb-3 font-label-xs text-label-xs uppercase tracking-wider w-24">Date</th>
+<th class="pb-3 font-label-xs text-label-xs uppercase tracking-wider w-40">Category</th>
+<th class="pb-3 font-label-xs text-label-xs uppercase tracking-wider">Note</th>
+<th class="pb-3 font-label-xs text-label-xs uppercase tracking-wider w-32">Payment</th>
+<th class="pb-3 font-label-xs text-label-xs uppercase tracking-wider w-40 text-right">Amount</th>
+<th class="pb-3 w-10"></th>
+</tr>
+</thead>
+<tbody>
+<!-- GROUP: SATURDAY -->
+<tr class="bg-brand-border/20">
+<td class="px-4 py-3 font-title-md text-title-md text-white border-b border-brand-border" colspan="6">
+                            Saturday, May 17 · <span class="text-outline font-normal">$87.20</span>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 17</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-400"></span>
+<span class="font-body-sm text-body-sm text-white">Dining Out</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Evening pasta at Luigi's</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Visa • 4242</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$42.00</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 17</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-400"></span>
+<span class="font-body-sm text-body-sm text-white">Groceries</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Weekly restock</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Apple Pay</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$45.20</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- GROUP: FRIDAY -->
+<tr class="bg-brand-border/20">
+<td class="px-4 py-3 font-title-md text-title-md text-white border-b border-brand-border mt-6" colspan="6">
+                            Friday, May 16 · <span class="text-outline font-normal">$215.50</span>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 16</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+<span class="font-body-sm text-body-sm text-white">Software</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Cloud Hosting Annual</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Visa • 4242</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">120.00 USD</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- MULTI-CURRENCY EXAMPLE -->
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 16</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-orange-400"></span>
+<span class="font-body-sm text-body-sm text-white">Travel</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Train to Berlin</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Mastercard</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">50.00 EUR</div>
+<div class="text-label-xs font-label-xs text-outline">≈ 55.00 USD</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 16</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-400"></span>
+<span class="font-body-sm text-body-sm text-white">Dining Out</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Coffee with Team</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Cash</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$12.50</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 16</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-purple-400"></span>
+<span class="font-body-sm text-body-sm text-white">Health</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Pharmacy</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Apple Pay</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$28.00</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- GROUP: THURSDAY -->
+<tr class="bg-brand-border/20">
+<td class="px-4 py-3 font-title-md text-title-md text-white border-b border-brand-border mt-6" colspan="6">
+                            Thursday, May 15 · <span class="text-outline font-normal">$542.10</span>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 15</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+<span class="font-body-sm text-body-sm text-white">Rent</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">May Housing Payment</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Bank Transfer</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$500.00</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 15</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-red-400"></span>
+<span class="font-body-sm text-body-sm text-white">Utilities</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Electricity bill</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Auto-pay</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$42.10</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-brand-border transition-colors border-b border-brand-border/50">
+<td class="py-4 font-body-sm text-body-sm text-outline tabular">May 15</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-400"></span>
+<span class="font-body-sm text-body-sm text-white">Groceries</span>
+</div>
+</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Fresh Produce Market</td>
+<td class="py-4 font-body-sm text-body-sm text-outline">Cash</td>
+<td class="py-4 text-right tabular">
+<div class="font-title-md text-title-md text-white">$32.50</div>
+</td>
+<td class="py-4 text-right pr-2">
+<button class="row-hover-action text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="mt-stack_lg flex flex-col items-center gap-stack_md py-10">
+<button class="px-6 py-2 bg-transparent border border-brand-border hover:bg-brand-border text-white rounded-lg font-body-sm text-body-sm transition-all">
+                    Load more
+                </button>
+<a class="text-outline hover:text-white font-label-xs text-label-xs transition-colors" href="#">
+                    View trash (3)
+                </a>
+</div>
+</div>
+</main>
+<!-- FLOATING ACTION BUTTON (Only for mobile/tablet if needed, though desktop is specified) -->
+<div class="md:hidden fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 bg-brand-accent rounded-full flex items-center justify-center shadow-lg text-white">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</body></html>

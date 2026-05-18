@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WealthWire - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom iOS Toggle Styling */
+        .toggle-switch:checked + .toggle-bg {
+            background-color: #4648d4;
+        }
+        .toggle-switch:checked + .toggle-bg::after {
+            transform: translateX(100%);
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        /* Hide scrollbars but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed": "#07006c",
+                      "inverse-primary": "#c0c1ff",
+                      "outline-variant": "#c7c4d7",
+                      "background": "#fcf8f8",
+                      "primary-fixed": "#e1e0ff",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#e5e2e1",
+                      "inverse-surface": "#313030",
+                      "on-secondary-container": "#494b83",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "secondary-fixed-dim": "#c0c1ff",
+                      "on-background": "#1c1b1b",
+                      "surface-container": "#f0edec",
+                      "on-surface": "#1c1b1b",
+                      "surface-tint": "#494bd6",
+                      "on-tertiary-fixed-variant": "#703700",
+                      "tertiary": "#904900",
+                      "on-secondary-fixed-variant": "#404178",
+                      "on-error-container": "#93000a",
+                      "surface-variant": "#e5e2e1",
+                      "inverse-on-surface": "#f3f0ef",
+                      "primary-container": "#6063ee",
+                      "surface-dim": "#dcd9d9",
+                      "secondary-fixed": "#e1e0ff",
+                      "on-secondary-fixed": "#13144a",
+                      "on-error": "#ffffff",
+                      "surface-bright": "#fcf8f8",
+                      "on-tertiary-container": "#fffbff",
+                      "on-tertiary-fixed": "#301400",
+                      "tertiary-fixed-dim": "#ffb783",
+                      "surface-container-high": "#ebe7e7",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#464554",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#bdbefe",
+                      "secondary": "#575992",
+                      "error": "#ba1a1a",
+                      "surface": "#fcf8f8",
+                      "primary": "#4648d4",
+                      "on-primary-container": "#fffbff",
+                      "tertiary-container": "#b55d00",
+                      "surface-container-low": "#f6f3f2",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "outline": "#767586"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack_sm": "8px",
+                      "content_max_width": "1400px",
+                      "gutter": "24px",
+                      "stack_lg": "24px",
+                      "sidebar_width": "240px",
+                      "container_padding": "32px",
+                      "stack_md": "16px"
+              },
+              "fontFamily": {
+                      "title-md": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "display-xl": ["Inter"],
+                      "label-xs": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-xl": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "label-xs": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- Primary Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-surface dark:bg-surface-container border-r border-outline-variant dark:border-outline flex flex-col py-stack_lg z-50">
+<div class="px-6 mb-8">
+<h1 class="font-display-xl text-display-xl font-bold text-primary dark:text-primary-fixed-dim">WealthWire</h1>
+<p class="font-body-sm text-body-sm opacity-60">Personal Finance</p>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-sm text-body-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-sm text-body-sm">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-body-sm text-body-sm">Categories</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-body-sm text-body-sm">Budgets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-sm text-body-sm">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-primary dark:text-primary-fixed-dim bg-secondary-container/30 dark:bg-secondary-container/10 border-l-2 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 py-2.5 bg-primary text-white rounded-xl font-title-md text-title-md hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">add</span>
+                Quick add
+            </button>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="ml-[240px] flex-1 flex flex-col min-h-screen">
+<!-- Top Nav Bar -->
+<header class="sticky top-0 z-40 w-full bg-surface/80 dark:bg-surface-container/80 backdrop-blur-md border-b border-outline-variant dark:border-outline flex justify-between items-center h-16 px-container_padding">
+<h2 class="font-headline-lg text-headline-lg font-semibold text-on-surface dark:text-on-surface-variant">Settings</h2>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 font-body-sm text-body-sm border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors">Date Range</button>
+<button class="px-4 py-2 font-body-sm text-body-sm bg-primary text-white rounded-lg hover:opacity-90 transition-all">Add Expense</button>
+</div>
+</header>
+<!-- Setting Layout Container -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Secondary Left Rail Sidebar -->
+<nav class="w-[200px] border-r border-outline-variant dark:border-outline bg-surface-container-low/30 py-6 px-4 space-y-1">
+<a class="block px-3 py-2 rounded-lg bg-surface-container-high text-primary font-medium text-body-sm transition-colors" href="#general">General</a>
+<a class="block px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors text-body-sm" href="#appearance">Appearance</a>
+<a class="block px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors text-body-sm" href="#currency">Currency</a>
+<a class="block px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors text-body-sm" href="#backup">Backup &amp; Restore</a>
+<a class="block px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors text-body-sm" href="#notifications">Notifications</a>
+<a class="block px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors text-body-sm" href="#about">About</a>
+</nav>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto p-container_padding max-w-[900px]">
+<!-- General Section -->
+<section class="mb-12" id="general">
+<h3 class="font-title-md text-title-md mb-6 border-b border-outline-variant pb-2">General</h3>
+<div class="space-y-8">
+<!-- Language -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Language</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Interface language for the application.</p>
+</div>
+<select class="w-48 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+<option>English</option>
+<option>Spanish</option>
+<option>French</option>
+<option>German</option>
+</select>
+</div>
+<!-- Week Starts On -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Week starts on</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Adjust your calendar and reporting start day.</p>
+</div>
+<div class="flex bg-surface-container-high rounded-lg p-1">
+<button class="px-4 py-1.5 text-body-sm rounded-md transition-all text-on-surface-variant hover:bg-surface">Sun</button>
+<button class="px-4 py-1.5 text-body-sm rounded-md transition-all bg-white text-primary shadow-sm font-medium">Mon</button>
+<button class="px-4 py-1.5 text-body-sm rounded-md transition-all text-on-surface-variant hover:bg-surface">Sat</button>
+</div>
+</div>
+<!-- Default View -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Default view</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Choose your initial landing screen.</p>
+</div>
+<select class="w-48 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+<option>Dashboard</option>
+<option>Expenses</option>
+<option>Weekly Report</option>
+</select>
+</div>
+<!-- Quick-add parser -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Quick-add parser</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Auto-detect categories and dates from text input.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-switch" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant rounded-full toggle-bg transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Appearance Section -->
+<section class="mb-12" id="appearance">
+<h3 class="font-title-md text-title-md mb-6 border-b border-outline-variant pb-2">Appearance</h3>
+<div class="space-y-8">
+<!-- Theme -->
+<div>
+<p class="font-title-md text-title-md mb-4">Theme</p>
+<div class="grid grid-cols-3 gap-4">
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="theme" type="radio"/>
+<div class="aspect-video bg-white border-2 border-outline-variant rounded-xl p-2 peer-checked:border-primary transition-all overflow-hidden relative">
+<div class="w-full h-full bg-surface-container-lowest rounded-lg border border-outline-variant/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant">light_mode</span>
+</div>
+<div class="absolute bottom-2 right-2 opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+</div>
+</div>
+<p class="text-center mt-2 text-body-sm font-medium">Light</p>
+</label>
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="theme" type="radio"/>
+<div class="aspect-video bg-inverse-surface border-2 border-outline-variant rounded-xl p-2 peer-checked:border-primary transition-all overflow-hidden relative">
+<div class="w-full h-full bg-slate-800 rounded-lg border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-white/40">dark_mode</span>
+</div>
+<div class="absolute bottom-2 right-2 opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+</div>
+</div>
+<p class="text-center mt-2 text-body-sm font-medium">Dark</p>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="sr-only peer" name="theme" type="radio"/>
+<div class="aspect-video bg-gradient-to-br from-white to-slate-800 border-2 border-outline-variant rounded-xl p-2 peer-checked:border-primary transition-all overflow-hidden relative">
+<div class="w-full h-full rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">settings_brightness</span>
+</div>
+<div class="absolute bottom-2 right-2 opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+</div>
+</div>
+<p class="text-center mt-2 text-body-sm font-medium">System</p>
+</label>
+</div>
+</div>
+<!-- Accent Color -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Accent color</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Change the primary highlights.</p>
+</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded-full bg-primary border-4 border-white shadow-sm ring-1 ring-primary"></button>
+<button class="w-8 h-8 rounded-full bg-rose-500 hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-emerald-500 hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-amber-500 hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-sky-500 hover:scale-110 transition-transform"></button>
+</div>
+</div>
+</div>
+</section>
+<!-- Backup & Restore Section -->
+<section class="mb-12" id="backup">
+<h3 class="font-title-md text-title-md mb-6 border-b border-outline-variant pb-2">Backup &amp; Restore</h3>
+<div class="space-y-8">
+<!-- Backup path -->
+<div>
+<p class="font-title-md text-title-md mb-3">Backup path</p>
+<div class="flex gap-2">
+<input class="flex-1 bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface-variant outline-none" readonly="" type="text" value="/Users/wealthwire/backups/"/>
+<button class="px-4 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-body-sm font-medium hover:bg-surface-container-highest transition-colors">Browse</button>
+</div>
+</div>
+<!-- Auto-backup settings -->
+<div class="grid grid-cols-2 gap-8">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-title-md text-title-md">Auto-backup</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Periodic snapshots.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-switch" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant rounded-full toggle-bg transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<p class="font-title-md text-title-md">Frequency</p>
+<select class="w-32 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-sm outline-none">
+<option>Daily</option>
+<option>Weekly</option>
+<option>Monthly</option>
+</select>
+</div>
+</div>
+<!-- Backup now action -->
+<div class="bg-surface-container-low/50 border border-outline-variant/50 rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">cloud_upload</span>
+</div>
+<div>
+<p class="font-title-md text-title-md">Instant backup</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Last backup was 2 hours ago.</p>
+</div>
+</div>
+<button class="px-6 py-2 bg-primary text-white rounded-lg font-medium text-body-sm hover:opacity-90 active:scale-[0.98] transition-all">Backup now</button>
+</div>
+<!-- Encryption -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">lock</span>
+<div>
+<p class="font-title-md text-title-md">Encrypt backups</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">AES-256 local encryption.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-switch" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant rounded-full toggle-bg transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+<!-- Recent Backups List -->
+<div>
+<p class="font-title-md text-title-md mb-4">Recent backups</p>
+<div class="border border-outline-variant rounded-xl overflow-hidden divide-y divide-outline-variant">
+<div class="flex items-center justify-between px-4 py-3 bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-outline">description</span>
+<div>
+<p class="text-body-sm font-medium">ww_backup_2023_10_24.zip</p>
+<p class="text-[12px] text-on-surface-variant tabular-nums">Oct 24, 2023 • 14.2 MB</p>
+</div>
+</div>
+<button class="flex items-center gap-2 text-primary font-medium text-body-sm hover:underline">
+<span class="material-symbols-outlined text-[18px]">restore</span>
+                                        Restore
+                                    </button>
+</div>
+<div class="flex items-center justify-between px-4 py-3 bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-outline">description</span>
+<div>
+<p class="text-body-sm font-medium">ww_backup_2023_10_23.zip</p>
+<p class="text-[12px] text-on-surface-variant tabular-nums">Oct 23, 2023 • 14.1 MB</p>
+</div>
+</div>
+<button class="flex items-center gap-2 text-primary font-medium text-body-sm hover:underline">
+<span class="material-symbols-outlined text-[18px]">restore</span>
+                                        Restore
+                                    </button>
+</div>
+<div class="flex items-center justify-between px-4 py-3 bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-outline">description</span>
+<div>
+<p class="text-body-sm font-medium">ww_backup_2023_10_22.zip</p>
+<p class="text-[12px] text-on-surface-variant tabular-nums">Oct 22, 2023 • 13.9 MB</p>
+</div>
+</div>
+<button class="flex items-center gap-2 text-primary font-medium text-body-sm hover:underline">
+<span class="material-symbols-outlined text-[18px]">restore</span>
+                                        Restore
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Preview Card (Right Floating Sidebar for visual context) -->
+<div class="w-[300px] p-6 border-l border-outline-variant bg-surface-container-lowest/50 hidden xl:block">
+<div class="sticky top-stack_lg">
+<p class="font-title-md text-title-md mb-4 text-on-surface-variant opacity-60">System Summary</p>
+<div class="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">account_circle</span>
+</div>
+<div>
+<p class="font-title-md text-title-md">Premium User</p>
+<p class="text-[12px] text-on-surface-variant">Member since Jan 2023</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Sync Status</span>
+<span class="flex items-center gap-1.5 text-emerald-600 text-[12px] font-bold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    LIVE
+                                </span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Storage Use</span>
+<span class="text-body-sm font-medium tabular-nums">24% of 1GB</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary w-[24%] h-full"></div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-outline-variant">
+<img class="w-full h-32 object-cover rounded-xl mb-4 grayscale hover:grayscale-0 transition-all duration-500 cursor-pointer" data-alt="A clean minimalist desk setup with a sleek tablet displaying a financial application showing graphs and expense lists. The lighting is soft and natural, emphasizing a professional and organized home office environment with soft focus on a potted plant in the background. The aesthetic is modern, utilitarian, and calm with a light color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-y0aiSVYMKKe1WNwdjghwjY7WuPYdsTdbQqNoooPHKHIS-jLRYuIuflb3xAhf2vOR1gpIIvg2evMTgMeMFdl0mnaihspjPMoqf14zB8ESYlD1XVdu4ukG-Odm88wtheIdWsRUY1kT4e9p_7oppPp8RNElhJJp8CmaHs1axPFcRmgT46OGkQ6gZlcgDYVVmRrgnML6FBS9-71aSHGZOJJgWt-aHvDP6ACvEvU9VaivDUAbdpO2LR3PCgGiPgt1GL4VV9MSwX2rNAYR"/>
+<p class="text-[12px] text-on-surface-variant leading-relaxed">WealthWire encrypts your data locally before any cloud synchronization occurs. Your keys never leave your device.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

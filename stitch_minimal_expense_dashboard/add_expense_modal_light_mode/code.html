@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#b55d00",
+                    "tertiary": "#904900",
+                    "on-surface-variant": "#464554",
+                    "inverse-surface": "#313030",
+                    "secondary-container": "#bdbefe",
+                    "on-error-container": "#93000a",
+                    "secondary": "#575992",
+                    "on-surface": "#1c1b1b",
+                    "surface-variant": "#e5e2e1",
+                    "background": "#fcf8f8",
+                    "inverse-primary": "#c0c1ff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "tertiary-fixed": "#ffdcc5",
+                    "surface-container-low": "#f6f3f2",
+                    "surface": "#fcf8f8",
+                    "surface-tint": "#494bd6",
+                    "on-primary-fixed": "#07006c",
+                    "primary": "#4648d4",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#494b83",
+                    "on-tertiary-fixed": "#301400",
+                    "outline-variant": "#c7c4d7",
+                    "secondary-fixed": "#e1e0ff",
+                    "on-background": "#1c1b1b",
+                    "secondary-fixed-dim": "#c0c1ff",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#13144a",
+                    "primary-fixed": "#e1e0ff",
+                    "on-secondary-fixed-variant": "#404178",
+                    "surface-container": "#f0edec",
+                    "surface-bright": "#fcf8f8",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "outline": "#767586",
+                    "on-tertiary-fixed-variant": "#703700",
+                    "on-primary-container": "#fffbff",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "surface-dim": "#dcd9d9",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e5e2e1",
+                    "primary-container": "#6063ee",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#fffbff",
+                    "inverse-on-surface": "#f3f0ef",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#ebe7e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container_padding": "32px",
+                    "gutter": "24px",
+                    "content_max_width": "1400px",
+                    "stack_lg": "24px",
+                    "stack_sm": "8px",
+                    "stack_md": "16px",
+                    "sidebar_width": "240px"
+            },
+            "fontFamily": {
+                    "label-xs": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "display-xl": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "title-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-xs": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-xl": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcf8f8;
+        }
+        .modal-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen overflow-hidden">
+<!-- Background Dashboard (Dimmed Overlay) -->
+<div class="fixed inset-0 z-0 opacity-40 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="A sophisticated financial dashboard interface in light mode with clean typography, indigo accents, and crisp data visualizations. The background shows blurred charts, transaction lists, and a sleek sidebar navigation. The lighting is bright and professional, creating a high-end software aesthetic focused on clarity and utility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNUJBOauhLtKfbNl-EOsTedVq32VbLO992y8fXMledviBJXVCQAzAPskpr57B2m7l1gdjGydxJbYo_wq-X-2g-FFcLikBjxTP6IGeeft-ufRQ6-YyvrrLFEz3eB86LM6faWjLp-CMFhQ6-0uhP7Jn_dji8tEEBEmDfGfa0ogoX4c0ReCHZWkKM08FEZbs3WO0Bk4ubY8Hur7oLpZZcICMS_DEvA3vqoBPLh4arG_-e1if2owl_dhx08DozUVJvQCCryEE5uY3Q5JZK"/>
+</div>
+<!-- Backdrop Dimmer -->
+<div class="fixed inset-0 z-10 bg-on-surface/30 backdrop-blur-[2px]"></div>
+<!-- Modal Container -->
+<div class="fixed inset-0 z-20 flex items-center justify-center p-4">
+<div class="bg-surface-container-lowest w-full max-w-[480px] rounded-xl modal-shadow border border-outline-variant flex flex-col max-h-[921px]">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Add Expense</h1>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Form Content -->
+<div class="flex-1 overflow-y-auto px-6 py-stack_lg space-y-stack_lg">
+<!-- Field 1: Amount & Currency -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline">Amount</label>
+<div class="flex items-center gap-3 bg-surface border border-outline-variant rounded-lg p-3 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
+<button class="flex items-center gap-1 px-2 py-1 bg-surface-container rounded border border-outline-variant text-body-sm font-body-sm">
+                            USD <span class="material-symbols-outlined text-[18px]" data-icon="expand_more">expand_more</span>
+</button>
+<input class="flex-1 bg-transparent border-none p-0 focus:ring-0 text-[32px] font-semibold text-on-surface" placeholder="0.00" type="text" value="0.00"/>
+</div>
+</div>
+<!-- Field 2: Category Pill Selector -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline uppercase tracking-wider">Category</label>
+<div class="flex flex-wrap gap-2">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-primary ring-2 ring-primary-fixed/30 bg-surface text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Food
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant hover:bg-surface-container text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Transport
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant hover:bg-surface-container text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Bills
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant hover:bg-surface-container text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Shopping
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant hover:bg-surface-container text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span> Entertainment
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant hover:bg-surface-container text-body-sm font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span> Other
+                        </button>
+</div>
+</div>
+<!-- Field 3: Date Picker & Quick Chips -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline">Date</label>
+<div class="flex flex-col gap-3">
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-full bg-primary text-on-primary text-body-sm font-medium">Today</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-body-sm font-medium hover:bg-surface-container-high">Yesterday</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-body-sm font-medium hover:bg-surface-container-high">2 days ago</button>
+</div>
+<div class="relative">
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-sm font-body-sm focus:ring-2 focus:ring-primary focus:border-primary" type="text" value="Oct 24, 2023"/>
+<span class="material-symbols-outlined absolute right-3 top-3 text-on-surface-variant" data-icon="calendar_today">calendar_today</span>
+</div>
+</div>
+</div>
+<!-- Field 4: Note -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline">Note</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-sm font-body-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Optional note (e.g. lunch at Joe's)" type="text"/>
+</div>
+<!-- Field 5: Payment Method Segmented Control -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline">Payment Method</label>
+<div class="flex w-full bg-surface-container-low p-1 rounded-lg border border-outline-variant">
+<button class="flex-1 py-1.5 text-body-sm font-medium rounded text-on-surface-variant hover:bg-surface">Cash</button>
+<button class="flex-1 py-1.5 text-body-sm font-medium rounded bg-white shadow-sm text-primary border border-outline-variant">Card</button>
+<button class="flex-1 py-1.5 text-body-sm font-medium rounded text-on-surface-variant hover:bg-surface">Bank</button>
+<button class="flex-1 py-1.5 text-body-sm font-medium rounded text-on-surface-variant hover:bg-surface">Other</button>
+</div>
+</div>
+<!-- Field 6: Tags -->
+<div class="space-y-stack_sm">
+<label class="font-label-xs text-label-xs text-outline">Tags</label>
+<div class="flex flex-wrap gap-2 w-full bg-surface border border-outline-variant rounded-lg px-4 py-3">
+<span class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-label-xs font-medium">Personal <span class="material-symbols-outlined text-[14px]" data-icon="close">close</span></span>
+<input class="flex-1 min-w-[120px] bg-transparent border-none p-0 focus:ring-0 text-body-sm font-body-sm" placeholder="Add tag and press Enter" type="text"/>
+</div>
+</div>
+<!-- Tip -->
+<div class="pt-4 border-t border-outline-variant/50">
+<p class="font-mono text-[11px] text-outline italic">Tip: type "50 food lunch" to auto-parse</p>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-between rounded-b-xl">
+<button class="px-5 py-2 text-on-surface-variant font-medium hover:bg-surface-container-high transition-colors rounded-lg">
+                    Cancel
+                </button>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-semibold shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                        Save Expense
+                        <span class="px-1.5 py-0.5 rounded bg-on-primary/20 text-[10px] uppercase font-bold tracking-tighter">Enter</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

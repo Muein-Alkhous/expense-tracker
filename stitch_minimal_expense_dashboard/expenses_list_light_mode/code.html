@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WealthWire - Expenses</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "outline": "#767586",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#e1e0ff",
+                        "secondary-container": "#bdbefe",
+                        "surface-tint": "#494bd6",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-surface": "#1c1b1b",
+                        "surface-container": "#f0edec",
+                        "inverse-surface": "#313030",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#464554",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "outline-variant": "#c7c4d7",
+                        "tertiary": "#904900",
+                        "on-tertiary-fixed": "#301400",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "on-secondary-fixed-variant": "#404178",
+                        "on-secondary-fixed": "#13144a",
+                        "inverse-primary": "#c0c1ff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary": "#575992",
+                        "surface": "#fcf8f8",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#494b83",
+                        "surface-container-high": "#ebe7e7",
+                        "primary": "#4648d4",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "on-primary-container": "#fffbff",
+                        "tertiary-container": "#b55d00",
+                        "on-background": "#1c1b1b",
+                        "surface-dim": "#dcd9d9",
+                        "primary-container": "#6063ee",
+                        "secondary-fixed": "#e1e0ff",
+                        "background": "#fcf8f8",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#07006c",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#fffbff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container_padding": "32px",
+                        "sidebar_width": "240px",
+                        "stack_sm": "8px",
+                        "content_max_width": "1400px",
+                        "gutter": "24px",
+                        "stack_md": "16px",
+                        "stack_lg": "24px"
+                    },
+                    "fontFamily": {
+                        "title-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-xs": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-xl": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-xs": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-xl": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-stack_lg z-50">
+<div class="px-6 mb-8">
+<h1 class="font-display-xl text-display-xl font-bold text-primary">WealthWire</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Personal Finance</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-sm text-body-sm">Dashboard</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-3 px-4 py-2 text-primary bg-secondary-container/30 border-l-2 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body-sm text-body-sm">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-body-sm text-body-sm">Categories</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-body-sm text-body-sm">Budgets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-sm text-body-sm">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-lg font-title-md text-title-md hover:opacity-90 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Quick add
+            </button>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="ml-[240px] min-h-screen flex flex-col">
+<!-- TOP NAVBAR -->
+<header class="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center h-16 px-container_padding">
+<h2 class="font-headline-lg text-headline-lg font-semibold text-on-surface">Expenses</h2>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 border border-outline-variant rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container transition-all">
+                    Date Range
+                </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg font-title-md text-title-md hover:opacity-90 transition-all active:scale-[0.98]">
+                    Add Expense
+                </button>
+</div>
+</header>
+<!-- STICKY FILTERS -->
+<div class="sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-outline-variant px-container_padding py-4 space-y-4">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<!-- Search Bar -->
+<div class="relative flex-1 max-w-md">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-outline material-symbols-outlined" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="Search notes, categories, amounts..." type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex items-center gap-2 flex-wrap">
+<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-full font-label-xs text-label-xs text-on-surface-variant hover:bg-surface-container transition-all">
+                        All categories <span class="material-symbols-outlined !text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-full font-label-xs text-label-xs text-on-surface-variant hover:bg-surface-container transition-all">
+                        This month <span class="material-symbols-outlined !text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-full font-label-xs text-label-xs text-on-surface-variant hover:bg-surface-container transition-all">
+                        All payment methods <span class="material-symbols-outlined !text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-full font-label-xs text-label-xs text-on-surface-variant hover:bg-surface-container transition-all">
+                        All currencies <span class="material-symbols-outlined !text-[16px]" data-icon="expand_more">expand_more</span>
+</button>
+<button class="ml-2 font-label-xs text-label-xs text-primary hover:underline">Clear</button>
+</div>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">
+                Showing 47 expenses · <span class="font-medium text-on-surface">Total: $2,847.32 USD</span>
+</div>
+</div>
+<!-- TABLE CONTENT -->
+<div class="flex-1 px-container_padding py-stack_lg max-w-content_max_width w-full mx-auto">
+<!-- Group: Saturday, May 17 -->
+<section class="mb-8">
+<div class="flex items-center justify-between py-2 border-b border-outline-variant mb-2">
+<h3 class="font-title-md text-title-md text-on-surface">Saturday, May 17</h3>
+<span class="font-title-md text-title-md text-on-surface-variant">$87.20</span>
+</div>
+<div class="divide-y divide-outline-variant">
+<!-- Row 1 (Multi-currency) -->
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 17</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Dining</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Bistro La Vie Dinner with Clients</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Credit Card</div>
+<div class="w-32 text-right tabular-nums">
+<div class="font-title-md text-title-md text-on-surface">50.00 EUR</div>
+<div class="font-label-xs text-label-xs text-on-surface-variant">≈ 55.00 USD</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<!-- Row 2 -->
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 17</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Transport</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Uber to Office</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Apple Pay</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">18.50 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<!-- Row 3 -->
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 17</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Shopping</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">New Desk Lamp</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Debit Card</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">13.70 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Group: Friday, May 16 -->
+<section class="mb-8">
+<div class="flex items-center justify-between py-2 border-b border-outline-variant mb-2">
+<h3 class="font-title-md text-title-md text-on-surface">Friday, May 16</h3>
+<span class="font-title-md text-title-md text-on-surface-variant">$245.10</span>
+</div>
+<div class="divide-y divide-outline-variant">
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 16</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Services</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Monthly Internet Subscription</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Direct Debit</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">75.00 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 16</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Grocery</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Whole Foods Weekly Run</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Apple Pay</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">170.10 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Group: Thursday, May 15 -->
+<section class="mb-8">
+<div class="flex items-center justify-between py-2 border-b border-outline-variant mb-2">
+<h3 class="font-title-md text-title-md text-on-surface">Thursday, May 15</h3>
+<span class="font-title-md text-title-md text-on-surface-variant">$112.00</span>
+</div>
+<div class="divide-y divide-outline-variant">
+<!-- Repeat rows to fill out list -->
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 15</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Fitness</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Yoga Studio Drop-in</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Cash</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">25.00 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 15</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Travel</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Airport Parking Fee</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Credit Card</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">45.00 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 15</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Dining</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Coffee &amp; Pastries</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Apple Pay</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">12.00 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="group flex items-center gap-4 py-4 px-2 hover:bg-[#f5f5f5] rounded-lg transition-colors relative cursor-pointer">
+<div class="w-16 font-body-sm text-body-sm text-on-surface-variant">May 15</div>
+<div class="flex items-center gap-2 w-40">
+<span class="w-2 h-2 rounded-full bg-error-container"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Health</span>
+</div>
+<div class="flex-1 font-body-sm text-body-sm text-on-surface">Pharmacy - Vitamins</div>
+<div class="w-32 font-body-sm text-body-sm text-on-surface-variant">Debit Card</div>
+<div class="w-32 text-right tabular-nums font-title-md text-title-md text-on-surface">30.00 USD</div>
+<button class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-surface-container rounded-md transition-all">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+</div>
+</section>
+<!-- FOOTER ACTIONS -->
+<div class="flex flex-col items-center gap-6 py-12">
+<button class="px-8 py-2.5 border border-outline-variant rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container transition-all">
+                    Load more
+                </button>
+<a class="font-label-xs text-label-xs text-on-surface-variant hover:text-primary underline underline-offset-4" href="#">
+                    View trash (3)
+                </a>
+</div>
+</div>
+</main>
+<!-- FLOATING ACTION BUTTON (Contextual Suppression - Not rendered on Details/List if Top Bar has it) -->
+<!-- Suppressed as per instructions for list/details screens with top-bar actions -->
+</body></html>

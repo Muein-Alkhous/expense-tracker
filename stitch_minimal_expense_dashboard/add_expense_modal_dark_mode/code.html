@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Roboto+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#b55d00",
+                        "tertiary": "#904900",
+                        "on-surface-variant": "#464554",
+                        "inverse-surface": "#313030",
+                        "secondary-container": "#bdbefe",
+                        "on-error-container": "#93000a",
+                        "secondary": "#575992",
+                        "on-surface": "#1c1b1b",
+                        "surface-variant": "#e5e2e1",
+                        "background": "#fcf8f8",
+                        "inverse-primary": "#c0c1ff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf8f8",
+                        "surface-tint": "#494bd6",
+                        "on-primary-fixed": "#07006c",
+                        "primary": "#4648d4",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#494b83",
+                        "on-tertiary-fixed": "#301400",
+                        "outline-variant": "#c7c4d7",
+                        "secondary-fixed": "#e1e0ff",
+                        "on-background": "#1c1b1b",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#13144a",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-fixed-variant": "#404178",
+                        "surface-container": "#f0edec",
+                        "surface-bright": "#fcf8f8",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "outline": "#767586",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-primary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "primary-container": "#6063ee",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-on-surface": "#f3f0ef",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#ebe7e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container_padding": "32px",
+                        "gutter": "24px",
+                        "content_max_width": "1400px",
+                        "stack_lg": "24px",
+                        "stack_sm": "8px",
+                        "stack_md": "16px",
+                        "sidebar_width": "240px"
+                    },
+                    "fontFamily": {
+                        "label-xs": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "mono": ["Roboto Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .modal-blur-bg {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dim font-body-sm text-on-surface dark:text-inverse-on-surface">
+<!-- Dashboard Background Placeholder -->
+<div class="fixed inset-0 z-0 overflow-hidden opacity-40 select-none pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="A professional financial dashboard interface in dark mode with complex analytical charts and data visualizations. The UI is highly detailed and minimalist following a modern SaaS aesthetic. The color palette consists of deep charcoals and muted blues with sharp white typography. The composition is clean and structured." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_RCQGgh-RSwh93LS5rrsK-OSsYSKNWdtUDzKcp3QkWACtqt4JqYsatZGo4qXHxvardT4xaqOpbEF2ugYzo1scxSf_rGIFBBAji6s62NoOMEtSuPiZtInQjL0ZFpQWHH4-WpEczHt-Dswpxw0NTvc7039VpKvHkelYtWa-bxbSoQbDKW5NxOQNx1TGaPk9tyftpNOIto9sMI9SaY6yDgTkiOvNbP_YQZabxFMzzowxRhgKwVsn-UIPWRC3TV39D_V4NkpBCp5ZJNHJ"/>
+</div>
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 z-50 flex items-center justify-center modal-blur-bg p-stack_md">
+<!-- Modal Container -->
+<div class="w-full max-w-[480px] bg-[#0a0a0a] rounded-xl border border-[#262626] shadow-2xl flex flex-col overflow-hidden">
+<!-- Header -->
+<div class="flex items-center justify-between px-stack_lg py-stack_md border-b border-[#262626]">
+<h2 class="font-headline-lg text-headline-lg text-[#fafafa] font-semibold">Add Expense</h2>
+<button class="text-on-surface-variant hover:text-[#fafafa] transition-colors p-1 rounded-lg">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Form Content -->
+<div class="px-stack_lg py-stack_lg flex flex-col space-y-[20px]">
+<!-- Field 1: Amount -->
+<div class="space-y-stack_sm">
+<div class="flex items-center bg-[#141414] border border-[#262626] rounded-xl focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all overflow-hidden">
+<div class="flex items-center px-stack_md border-r border-[#262626] cursor-pointer hover:bg-[#1f1f1f] transition-colors">
+<span class="text-on-surface-variant font-medium text-body-sm mr-1">USD</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+<input class="flex-1 bg-transparent border-none text-[32px] font-semibold text-[#fafafa] placeholder:text-[#333333] py-stack_md px-stack_md focus:ring-0" placeholder="0.00" type="text"/>
+</div>
+</div>
+<!-- Field 2: Category -->
+<div class="space-y-stack_sm">
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">Dining</button>
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-tertiary/10 text-tertiary-fixed-dim border border-tertiary/20 hover:bg-tertiary/20 transition-colors">Transport</button>
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-[#22c55e1a] text-[#4ade80] border border-[#22c55e33] hover:bg-[#22c55e2a] transition-colors">Shopping</button>
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-[#eab3081a] text-[#fde047] border border-[#eab30833] hover:bg-[#eab3082a] transition-colors">Health</button>
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-[#ec48991a] text-[#f472b6] border border-[#ec489933] hover:bg-[#ec48992a] transition-colors">Travel</button>
+<button class="px-4 py-2 rounded-full text-label-xs font-label-xs bg-[#8b5cf61a] text-[#a78bfa] border border-[#8b5cf633] hover:bg-[#8b5cf62a] transition-colors">Entertainment</button>
+</div>
+</div>
+<!-- Field 3: Date -->
+<div class="space-y-stack_sm">
+<div class="flex gap-2 mb-2">
+<button class="px-3 py-1.5 rounded-lg text-label-xs bg-primary text-on-primary font-medium">Today</button>
+<button class="px-3 py-1.5 rounded-lg text-label-xs bg-[#1a1a1a] text-on-surface-variant border border-[#262626] hover:text-[#fafafa] transition-colors">Yesterday</button>
+<button class="px-3 py-1.5 rounded-lg text-label-xs bg-[#1a1a1a] text-on-surface-variant border border-[#262626] hover:text-[#fafafa] transition-colors">2 days ago</button>
+</div>
+<div class="relative">
+<input class="w-full bg-[#141414] border border-[#262626] rounded-lg text-body-sm text-[#fafafa] p-stack_md focus:ring-1 focus:ring-primary focus:border-primary" type="date"/>
+</div>
+</div>
+<!-- Field 4: Note -->
+<div class="space-y-stack_sm">
+<input class="w-full bg-[#141414] border border-[#262626] rounded-lg text-body-sm text-[#fafafa] p-stack_md placeholder:text-[#444] focus:ring-1 focus:ring-primary focus:border-primary" placeholder="What was this for?" type="text"/>
+</div>
+<!-- Field 5: Payment Method -->
+<div class="space-y-stack_sm">
+<div class="flex p-1 bg-[#141414] border border-[#262626] rounded-xl">
+<button class="flex-1 py-2 px-3 rounded-lg text-label-xs font-medium bg-[#262626] text-[#fafafa]">Cash</button>
+<button class="flex-1 py-2 px-3 rounded-lg text-label-xs font-medium text-on-surface-variant hover:text-[#fafafa] transition-colors">Card</button>
+<button class="flex-1 py-2 px-3 rounded-lg text-label-xs font-medium text-on-surface-variant hover:text-[#fafafa] transition-colors">Transfer</button>
+</div>
+</div>
+<!-- Field 6: Tags -->
+<div class="space-y-stack_sm">
+<div class="flex items-center gap-2 p-stack_md bg-[#141414] border border-[#262626] rounded-lg">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-[#262626] rounded text-label-xs text-[#fafafa]">
+                            #work
+                            <span class="material-symbols-outlined text-[14px] cursor-pointer opacity-60 hover:opacity-100" data-icon="close">close</span>
+</div>
+<input class="flex-1 bg-transparent border-none p-0 text-body-sm text-[#fafafa] focus:ring-0 placeholder:text-[#444]" placeholder="Add tags..." type="text"/>
+</div>
+</div>
+<!-- Hint -->
+<div class="pt-2">
+<p class="font-mono text-[11px] text-[#666666] uppercase tracking-wider">
+                        Tip: type "50 food lunch" to auto-parse
+                    </p>
+</div>
+</div>
+<!-- Footer -->
+<div class="px-stack_lg py-stack_lg flex items-center justify-end gap-stack_md border-t border-[#262626]">
+<button class="px-stack_lg py-2.5 rounded-lg text-title-md font-title-md text-on-surface-variant hover:text-[#fafafa] transition-colors">
+                    Cancel
+                </button>
+<button class="flex items-center gap-2 px-stack_lg py-2.5 bg-primary rounded-lg text-on-primary text-title-md font-title-md hover:brightness-110 transition-all active:scale-95">
+                    Save Expense
+                    <span class="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-bold border border-white/10">ENTER</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>
