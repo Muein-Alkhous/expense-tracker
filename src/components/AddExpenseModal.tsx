@@ -18,7 +18,7 @@ import { today, daysAgo } from "@/lib/date";
 import { toMinor } from "@/lib/money";
 import type { PaymentMethod } from "@/types";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "AED", "JPY"] as const;
+const CURRENCIES = ["USD", "EUR", "TRY", "SYP"] as const;
 
 export default function AddExpenseModal() {
   const open = useUi((s) => s.addExpenseOpen);
@@ -236,62 +236,68 @@ function AmountField({
   onCurrencyChange,
   amountRef,
 }: AmountFieldProps) {
-  const [open, setOpen] = useState(false);
+  /** Dropdown open — named to avoid confusing with Modal `open` (same-file scope). */
+  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        setCurrencyMenuOpen(false);
       }
     }
-    if (open) document.addEventListener("mousedown", onClick);
+    if (currencyMenuOpen) document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
+  }, [currencyMenuOpen]);
 
   return (
     // Outer wrapper is the positioning context for the dropdown.
-    // The inner row uses overflow-hidden so the inner button hover bg follows
-    // the rounded corners; the dropdown is rendered OUTSIDE that row so it
-    // is not clipped.
+    // Inner row uses `grid` (not flex) so the amount field can never repaint on top of
+    // the currency control — on some browsers `type="number"` focus/spinner repaint
+    // briefly covered the sibling and looked like disappearing text.
     <div ref={wrapperRef} className="relative">
-      <div className="flex items-stretch overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Currency"
-          aria-expanded={open}
-          className="inline-flex items-center gap-1.5 border-r border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-        >
-          <span>{currency}</span>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            width="12"
-            height="12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-neutral-400"
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent">
+        <div className="relative z-10 flex items-stretch border-r border-neutral-200 bg-neutral-50">
+          <button
+            type="button"
+            onClick={() => setCurrencyMenuOpen((v) => !v)}
+            aria-label={`Currency, ${currency}`}
+            aria-expanded={currencyMenuOpen}
+            className="inline-flex min-w-[5rem] items-center justify-start gap-1.5 px-3 py-2 text-left text-sm font-semibold tracking-wide text-neutral-900 hover:bg-neutral-100"
           >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
+            {/* Plain sans text — monospace font loading flicker ruled out */}
+            <span className="min-w-[2.75rem] shrink-0 font-sans tabular-nums">
+              {currency}
+            </span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              width="12"
+              height="12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0 text-neutral-400"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        </div>
         <input
           ref={amountRef}
-          type="number"
+          type="text"
           inputMode="decimal"
-          step="0.01"
-          min="0"
+          autoComplete="off"
+          spellCheck={false}
           placeholder="0.00"
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
-          className="flex-1 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+          className="col-start-2 min-h-[3.25rem] min-w-0 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
         />
       </div>
-      {open && (
+      {currencyMenuOpen && (
         <ul className="absolute left-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg">
           {CURRENCIES.map((c) => {
             const active = c === currency;
@@ -301,7 +307,7 @@ function AmountField({
                   type="button"
                   onClick={() => {
                     onCurrencyChange(c);
-                    setOpen(false);
+                    setCurrencyMenuOpen(false);
                   }}
                   className={
                     "block w-full px-3 py-1.5 text-left text-sm transition-colors " +
