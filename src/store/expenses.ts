@@ -16,8 +16,7 @@ export const CATEGORIES: Category[] = [
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "cash", label: "Cash" },
   { id: "card", label: "Card" },
-  { id: "bank", label: "Bank" },
-  { id: "other", label: "Other" },
+  { id: "transfer", label: "Transfer" },
 ];
 
 function daysAgo(n: number): string {

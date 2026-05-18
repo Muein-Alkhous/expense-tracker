@@ -16,7 +16,7 @@ export interface Expense {
   deleted_at?: string | null;
 }
 
-export type PaymentMethod = "cash" | "card" | "bank" | "other";
+export type PaymentMethod = "cash" | "card" | "transfer" | "bank" | "other";
 
 export interface Category {
   id: string;
