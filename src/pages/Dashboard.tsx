@@ -8,18 +8,14 @@ import { isThisMonth, isThisWeek } from "@/lib/date";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
-
-const BASE_CURRENCY = "USD";
-
-const BUDGETS: { categoryId: string; limitMinor: number }[] = [
-  { categoryId: "food", limitMinor: 60000 },
-  { categoryId: "transport", limitMinor: 30000 },
-  { categoryId: "entertainment", limitMinor: 3000 },
-];
+import { useBudgets } from "@/store/budgets";
+import { useSettings } from "@/store/settings";
 
 export default function Dashboard() {
   const items = useExpenses((s) => s.items);
   const categories = useCategories((s) => s.items);
+  const budgetItems = useBudgets((s) => s.items);
+  const baseCurrency = useSettings((s) => s.baseCurrency);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
 
   const stats = useMemo(() => {
@@ -57,17 +53,17 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Spent this month"
-          value={formatMinor(stats.monthTotal, BASE_CURRENCY)}
+          value={formatMinor(stats.monthTotal, baseCurrency)}
           trend={{ sign: "up", text: "+12%" }}
         />
         <KpiCard
           label="Spent this week"
-          value={formatMinor(stats.weekTotal, BASE_CURRENCY)}
-          hint={`Avg ${formatMinor(stats.dailyAvg, BASE_CURRENCY)} / day`}
+          value={formatMinor(stats.weekTotal, baseCurrency)}
+          hint={`Avg ${formatMinor(stats.dailyAvg, baseCurrency)} / day`}
         />
         <KpiCard
           label="Average per day"
-          value={formatMinor(stats.dailyAvg, BASE_CURRENCY)}
+          value={formatMinor(stats.dailyAvg, baseCurrency)}
           trend={{ sign: "down", text: "-5%" }}
         />
         <KpiCard
@@ -118,7 +114,7 @@ export default function Dashboard() {
                       {cat.name}
                     </span>
                     <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
-                      {formatMinor(row.total, BASE_CURRENCY)}
+                      {formatMinor(row.total, baseCurrency)}
                     </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
@@ -170,7 +166,7 @@ export default function Dashboard() {
             Budget progress
           </h2>
           <ul className="space-y-5">
-            {BUDGETS.map((b) => {
+            {budgetItems.slice(0, 3).map((b) => {
               const cat = categories.find((c) => c.id === b.categoryId);
               if (!cat) return null;
               const spent = stats.monthExpenses
@@ -190,7 +186,7 @@ export default function Dashboard() {
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="text-neutral-700 dark:text-neutral-300">{cat.name}</span>
                     <span className="text-xs text-neutral-500 tabular-nums">
-                      {formatMinor(spent, BASE_CURRENCY)} of {formatMinor(b.limitMinor, BASE_CURRENCY)}
+                      {formatMinor(spent, baseCurrency)} of {formatMinor(b.limitMinor, baseCurrency)}
                     </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
@@ -210,7 +206,7 @@ export default function Dashboard() {
                     }
                   >
                     {state === "exceeded"
-                      ? `Over budget by ${formatMinor(spent - b.limitMinor, BASE_CURRENCY)}`
+                      ? `Over budget by ${formatMinor(spent - b.limitMinor, baseCurrency)}`
                       : state === "warning"
                       ? `${pct}% used — careful`
                       : `${pct}% used`}

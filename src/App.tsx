@@ -4,9 +4,14 @@ import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import AddExpenseModal from "@/components/AddExpenseModal";
+import NewBudgetModal from "@/components/NewBudgetModal";
+import ExportCsvModal from "@/components/ExportCsvModal";
 import Dashboard from "@/pages/Dashboard";
 import Expenses from "@/pages/Expenses";
 import Categories from "@/pages/Categories";
+import Budgets from "@/pages/Budgets";
+import Reports from "@/pages/Reports";
+import Settings from "@/pages/Settings";
 import { useUi, type PageId } from "@/store/ui";
 
 const PAGE_TITLES: Record<PageId, string> = {
@@ -40,22 +45,25 @@ export default function App() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           title={PAGE_TITLES[currentPage]}
-          showPeriod={currentPage === "dashboard" || currentPage === "expenses"}
+          showPeriod={
+            currentPage === "dashboard" ||
+            currentPage === "expenses" ||
+            currentPage === "budgets" ||
+            currentPage === "reports"
+          }
         />
         <main className="flex-1 overflow-y-auto">
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "expenses" && <Expenses />}
           {currentPage === "categories" && <Categories />}
-          {currentPage !== "dashboard" &&
-            currentPage !== "expenses" &&
-            currentPage !== "categories" && (
-            <div className="p-8 text-sm text-neutral-500">
-              {PAGE_TITLES[currentPage]} is coming soon.
-            </div>
-          )}
+          {currentPage === "budgets" && <Budgets />}
+          {currentPage === "reports" && <Reports />}
+          {currentPage === "settings" && <Settings />}
         </main>
       </div>
       <AddExpenseModal />
+      <NewBudgetModal />
+      <ExportCsvModal />
     </div>
   );
 }

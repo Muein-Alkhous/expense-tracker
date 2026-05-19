@@ -16,6 +16,13 @@ interface UiState {
   addExpenseOpen: boolean;
   openAddExpense: () => void;
   closeAddExpense: () => void;
+  newBudgetOpen: boolean;
+  newBudgetCategoryId: string | null;
+  openNewBudget: (categoryId?: string) => void;
+  closeNewBudget: () => void;
+  exportCsvOpen: boolean;
+  openExportCsv: () => void;
+  closeExportCsv: () => void;
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -24,4 +31,12 @@ export const useUi = create<UiState>((set) => ({
   addExpenseOpen: false,
   openAddExpense: () => set({ addExpenseOpen: true }),
   closeAddExpense: () => set({ addExpenseOpen: false }),
+  newBudgetOpen: false,
+  newBudgetCategoryId: null,
+  openNewBudget: (categoryId) =>
+    set({ newBudgetOpen: true, newBudgetCategoryId: categoryId ?? null }),
+  closeNewBudget: () => set({ newBudgetOpen: false, newBudgetCategoryId: null }),
+  exportCsvOpen: false,
+  openExportCsv: () => set({ exportCsvOpen: true }),
+  closeExportCsv: () => set({ exportCsvOpen: false }),
 }));
