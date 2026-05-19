@@ -22,4 +22,8 @@
     background-color: #262626;
     color: #fafafa;
   }
+
+  html.dark input[type="date"] {
+    color-scheme: dark;
+  }
 }

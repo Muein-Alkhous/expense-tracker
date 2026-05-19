@@ -1,5 +1,6 @@
 // UI store: current page, modal visibility, and other transient app state.
 
+import type { PeriodId } from "@/lib/period";
 import { create } from "zustand";
 
 export type PageId =
@@ -13,6 +14,8 @@ export type PageId =
 interface UiState {
   currentPage: PageId;
   setCurrentPage: (page: PageId) => void;
+  dashboardPeriod: PeriodId;
+  setDashboardPeriod: (period: PeriodId) => void;
   addExpenseOpen: boolean;
   openAddExpense: () => void;
   closeAddExpense: () => void;
@@ -28,6 +31,8 @@ interface UiState {
 export const useUi = create<UiState>((set) => ({
   currentPage: "dashboard",
   setCurrentPage: (page) => set({ currentPage: page }),
+  dashboardPeriod: "this_month",
+  setDashboardPeriod: (period) => set({ dashboardPeriod: period }),
   addExpenseOpen: false,
   openAddExpense: () => set({ addExpenseOpen: true }),
   closeAddExpense: () => set({ addExpenseOpen: false }),

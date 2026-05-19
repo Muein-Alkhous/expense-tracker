@@ -1,6 +1,5 @@
 // Modal form to add a new expense.
-// Style matches the dark-mockup layout but rendered in light mode:
-// minimal, no field labels, colored-border category pills, 3 payment methods.
+// Minimal layout: no field labels, colored-border category pills, 3 payment methods.
 
 import {
   useEffect,
@@ -23,6 +22,9 @@ import { useSettings } from "@/store/settings";
 import type { PaymentMethod } from "@/types";
 
 const CURRENCIES = ["USD", "EUR", "TRY", "SYP"] as const;
+
+const fieldClass =
+  "w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50 dark:placeholder:text-neutral-500";
 
 export default function AddExpenseModal() {
   const open = useUi((s) => s.addExpenseOpen);
@@ -174,7 +176,7 @@ export default function AddExpenseModal() {
                   "rounded-control px-4 py-2 text-sm font-medium transition-colors " +
                   (active
                     ? "bg-accent text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200")
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700")
                 }
               >
                 {chip.label}
@@ -187,7 +189,7 @@ export default function AddExpenseModal() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 focus:border-accent focus:outline-none"
+          className={fieldClass}
         />
 
         <input
@@ -200,10 +202,10 @@ export default function AddExpenseModal() {
             }
           }}
           placeholder={quickAddParser ? 'e.g. "42.50 food lunch" or "15 transport"' : "What was this for?"}
-          className="w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+          className={fieldClass}
         />
 
-        <div className="flex rounded-control bg-neutral-100 p-1">
+        <div className="flex rounded-control bg-neutral-100 p-1 dark:bg-neutral-800">
           {PAYMENT_METHODS.map((m) => {
             const active = paymentMethod === m.id;
             return (
@@ -214,8 +216,8 @@ export default function AddExpenseModal() {
                 className={
                   "flex-1 rounded-control py-2 text-sm font-medium transition-colors " +
                   (active
-                    ? "bg-white text-neutral-900 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700")
+                    ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-50 dark:shadow-none"
+                    : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200")
                 }
               >
                 {m.label}
@@ -224,7 +226,7 @@ export default function AddExpenseModal() {
           })}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-control border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-accent">
+        <div className="flex flex-wrap items-center gap-2 rounded-control border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-accent dark:border-neutral-700 dark:bg-neutral-800">
           {tags.map((t) => (
             <span
               key={t}
@@ -246,12 +248,12 @@ export default function AddExpenseModal() {
             onChange={(e) => setTagDraft(e.target.value)}
             onKeyDown={handleTagKey}
             placeholder={tags.length ? "" : "Add tags..."}
-            className="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+            className="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-50 dark:placeholder:text-neutral-500"
           />
         </div>
 
         {quickAddParser && (
-          <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-400">
+          <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
             Tip: type &quot;50 food lunch&quot; in the note field, then press Enter or tab away
           </p>
         )}
@@ -297,14 +299,14 @@ function AmountField({
     // the currency control — on some browsers `type="number"` focus/spinner repaint
     // briefly covered the sibling and looked like disappearing text.
     <div ref={wrapperRef} className="relative">
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent">
-        <div className="relative z-10 flex items-stretch border-r border-neutral-200 bg-neutral-50">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-control border border-neutral-200 bg-neutral-50 focus-within:border-accent dark:border-neutral-700 dark:bg-neutral-800 dark:focus-within:border-accent">
+        <div className="relative z-10 flex items-stretch border-r border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
           <button
             type="button"
             onClick={() => setCurrencyMenuOpen((v) => !v)}
             aria-label={`Currency, ${currency}`}
             aria-expanded={currencyMenuOpen}
-            className="inline-flex min-w-[5rem] items-center justify-start gap-1.5 px-3 py-2 text-left text-sm font-semibold tracking-wide text-neutral-900 hover:bg-neutral-100"
+            className="inline-flex min-w-[5rem] items-center justify-start gap-1.5 px-3 py-2 text-left text-sm font-semibold tracking-wide text-neutral-900 hover:bg-neutral-100 dark:text-neutral-50 dark:hover:bg-neutral-700"
           >
             {/* Plain sans text — monospace font loading flicker ruled out */}
             <span className="min-w-[2.75rem] shrink-0 font-sans tabular-nums">
@@ -335,11 +337,11 @@ function AmountField({
           placeholder="0.00"
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
-          className="col-start-2 min-h-[3.25rem] min-w-0 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+          className="col-start-2 min-h-[3.25rem] min-w-0 bg-transparent px-3 py-3 text-2xl font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-50 dark:placeholder:text-neutral-500"
         />
       </div>
       {currencyMenuOpen && (
-        <ul className="absolute left-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg">
+        <ul className="absolute left-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
           {CURRENCIES.map((c) => {
             const active = c === currency;
             return (
@@ -354,7 +356,7 @@ function AmountField({
                     "block w-full px-3 py-1.5 text-left text-sm transition-colors " +
                     (active
                       ? "bg-accent/10 text-accent"
-                      : "text-neutral-700 hover:bg-neutral-50")
+                      : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700")
                   }
                 >
                   {c}

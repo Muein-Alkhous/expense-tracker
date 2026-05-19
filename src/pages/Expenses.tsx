@@ -9,16 +9,9 @@ import { formatDate } from "@/lib/date";
 import { formatMinor } from "@/lib/money";
 import dayjs from "dayjs";
 import type { Expense } from "@/types";
+import { PERIOD_OPTIONS, periodRange, type PeriodId } from "@/lib/period";
 
 import { useSettings } from "@/store/settings";
-
-const PERIOD_OPTIONS: FilterOption[] = [
-  { id: "this_month", label: "This month" },
-  { id: "last_month", label: "Last month" },
-  { id: "last_3_months", label: "Last 3 months" },
-  { id: "this_year", label: "This year" },
-  { id: "all_time", label: "All time" },
-];
 
 const PAYMENT_OPTIONS: FilterOption[] = [
   { id: "all", label: "All payment methods" },
@@ -172,7 +165,7 @@ function filterExpenses(
   categories: { id: string; name: string }[],
 ): Expense[] {
   const search = filters.search.trim().toLowerCase();
-  const { start, end } = periodRange(filters.period);
+  const { start, end } = periodRange(filters.period as PeriodId);
 
   return items
     .filter((e) => !e.deleted_at)
@@ -198,25 +191,6 @@ function filterExpenses(
       return true;
     })
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-}
-
-function periodRange(period: string): { start: dayjs.Dayjs | null; end: dayjs.Dayjs | null } {
-  const now = dayjs();
-  switch (period) {
-    case "this_month":
-      return { start: now.startOf("month"), end: now.endOf("month") };
-    case "last_month": {
-      const prev = now.subtract(1, "month");
-      return { start: prev.startOf("month"), end: prev.endOf("month") };
-    }
-    case "last_3_months":
-      return { start: now.subtract(3, "month").startOf("month"), end: now.endOf("month") };
-    case "this_year":
-      return { start: now.startOf("year"), end: now.endOf("year") };
-    case "all_time":
-    default:
-      return { start: null, end: null };
-  }
 }
 
 interface DayGroup {

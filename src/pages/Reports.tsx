@@ -16,7 +16,15 @@ import {
 } from "recharts";
 import Button from "@/components/ui/Button";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { formatDate, isThisMonth } from "@/lib/date";
+import { formatChartDate, formatDate, toDateKey } from "@/lib/date";
+import {
+  filterByPeriod,
+  filterByRange,
+  periodPrintLabel,
+  previousPeriodRange,
+  type PeriodId,
+} from "@/lib/period";
+import PeriodSelector from "@/components/PeriodSelector";
 import { formatMinor } from "@/lib/money";
 import { printMonthlyStatement } from "@/lib/printStatement";
 import { CategoryIcon } from "@/lib/categoryIcons";
@@ -39,17 +47,18 @@ export default function Reports() {
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openExportCsv = useUi((s) => s.openExportCsv);
   const [trendRange, setTrendRange] = useState<TrendRange>("60");
+  const [period, setPeriod] = useState<PeriodId>("this_month");
   const isDark = useDarkMode();
 
-  const thisMonth = useMemo(() => expenses.filter((e) => isThisMonth(e.date)), [expenses]);
+  const thisMonth = useMemo(
+    () => filterByPeriod(expenses, period),
+    [expenses, period],
+  );
   const lastMonth = useMemo(() => {
-    const start = dayjs().subtract(1, "month").startOf("month");
-    const end = dayjs().subtract(1, "month").endOf("month");
-    return expenses.filter((e) => {
-      const d = dayjs(e.date);
-      return (d.isAfter(start) || d.isSame(start, "day")) && (d.isBefore(end) || d.isSame(end, "day"));
-    });
-  }, [expenses]);
+    const prev = previousPeriodRange(period);
+    if (!prev) return [];
+    return filterByRange(expenses, prev.start, prev.end);
+  }, [expenses, period]);
 
   const monthTotal = useMemo(
     () => thisMonth.reduce((acc, e) => acc + e.amount_minor, 0),
@@ -210,16 +219,7 @@ export default function Reports() {
   return (
     <div className="space-y-6 p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-        >
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          This month
-        </button>
+        <PeriodSelector value={period} onChange={setPeriod} />
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={openExportCsv}>Export</Button>
         </div>
@@ -354,7 +354,8 @@ export default function Reports() {
                 tick={{ fontSize: 10, fill: chartAxisTick }}
                 axisLine={false}
                 tickLine={false}
-                interval="preserveStartEnd"
+                interval={Math.max(0, Math.floor(trendDays / 7) - 1)}
+                tickFormatter={(value) => formatChartDate(String(value))}
               />
               <YAxis hide />
               <Tooltip
@@ -366,6 +367,12 @@ export default function Reports() {
                   fontSize: 12,
                 }}
                 formatter={(v: number) => [formatMinor(v, baseCurrency), "Spent"]}
+                labelFormatter={(_, payload) => {
+                  const row = payload?.[0]?.payload as { date?: string; label?: string } | undefined;
+                  if (!row?.date) return "";
+                  if (row.label === "Today") return "Today";
+                  return formatDate(row.date, "MMM D, YYYY");
+                }}
               />
               <Area
                 type="monotone"
@@ -473,7 +480,10 @@ export default function Reports() {
           <button
             type="button"
             onClick={() =>
-              printMonthlyStatement(thisMonth, { baseCurrency })
+              printMonthlyStatement(thisMonth, {
+                baseCurrency,
+                periodLabel: periodPrintLabel(period),
+              })
             }
             className="hover:text-neutral-600 dark:hover:text-neutral-300"
           >
@@ -554,19 +564,20 @@ function CompareBar({
 function buildDailyTrend(
   items: { date: string; amount_minor: number }[],
   days: number,
-): { label: string; total: number }[] {
-  const buckets: { date: string; total: number; label: string }[] = [];
+): { date: string; label: string; total: number }[] {
+  const buckets: { date: string; label: string; total: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const d = dayjs().subtract(i, "day");
+    const d = dayjs().subtract(i, "day").startOf("day");
+    const dateKey = d.format("YYYY-MM-DD");
     buckets.push({
-      date: d.format("YYYY-MM-DD"),
+      date: dateKey,
+      label: formatChartDate(dateKey),
       total: 0,
-      label: d.format(days <= 30 ? "MMM D" : i % 14 === 0 ? "MMM D" : ""),
     });
   }
   const index = new Map(buckets.map((b, i) => [b.date, i]));
   for (const item of items) {
-    const i = index.get(item.date);
+    const i = index.get(toDateKey(item.date));
     if (i !== undefined) buckets[i].total += item.amount_minor;
   }
   if (buckets.length > 0) {

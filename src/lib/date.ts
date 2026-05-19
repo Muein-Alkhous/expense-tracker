@@ -14,6 +14,17 @@ export function formatDate(date: string, fmt = "MMM D, YYYY"): string {
   return dayjs(date).format(fmt);
 }
 
+/** Stable YYYY-MM-DD key for grouping/filtering (handles ISO datetimes). */
+export function toDateKey(date: string): string {
+  return dayjs(date).format("YYYY-MM-DD");
+}
+
+/** Short label for chart axes (e.g. "Apr 7"). */
+export function formatChartDate(date: string): string {
+  const d = dayjs(date);
+  return d.isValid() ? d.format("MMM D") : date;
+}
+
 export function isThisMonth(date: string): boolean {
   const now = dayjs();
   return dayjs(date).isSame(now, "month");

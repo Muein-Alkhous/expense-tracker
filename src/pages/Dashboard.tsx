@@ -1,10 +1,26 @@
 // Dashboard screen: KPI cards, daily trend, category breakdown, recent transactions, budgets.
 
 import { useMemo } from "react";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import KpiCard from "@/components/KpiCard";
 import ExpenseRow from "@/components/ExpenseRow";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { formatChartDate, formatDate, isThisWeek, toDateKey } from "@/lib/date";
 import { formatMinor } from "@/lib/money";
-import { isThisMonth, isThisWeek } from "@/lib/date";
+import dayjs from "dayjs";
+import {
+  filterByPeriod,
+  periodRange,
+  periodSpentLabel,
+  type PeriodId,
+} from "@/lib/period";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
@@ -18,9 +34,11 @@ export default function Dashboard() {
   const baseCurrency = useSettings((s) => s.baseCurrency);
   const weekStartDay = useSettings((s) => s.weekStartDay);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
+  const period = useUi((s) => s.dashboardPeriod);
+  const isDark = useDarkMode();
 
   const stats = useMemo(() => {
-    const monthExpenses = items.filter((e) => isThisMonth(e.date));
+    const monthExpenses = filterByPeriod(items, period);
     const weekExpenses = items.filter((e) => isThisWeek(e.date, weekStartDay));
 
     const monthTotal = monthExpenses.reduce((acc, e) => acc + e.amount_minor, 0);
@@ -44,16 +62,22 @@ export default function Dashboard() {
       : 0;
 
     return { monthExpenses, monthTotal, weekTotal, dailyAvg, breakdown, topCategory, topCategoryPct };
-  }, [items, categories, weekStartDay]);
+  }, [items, categories, weekStartDay, period]);
 
-  const trend = useMemo(() => buildDailyTrend(items, 30), [items]);
-  const maxTrend = Math.max(1, ...trend.map((d) => d.total));
+  const trend = useMemo(() => {
+    const buckets = buildDailyTrendForPeriod(items, period);
+    const todayKey = dayjs().format("YYYY-MM-DD");
+    return buckets.map((b) => ({
+      ...b,
+      label: b.date === todayKey ? "Today" : formatChartDate(b.date),
+    }));
+  }, [items, period]);
 
   return (
     <div className="space-y-6 p-8">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label="Spent this month"
+          label={periodSpentLabel(period)}
           value={formatMinor(stats.monthTotal, baseCurrency)}
           trend={{ sign: "up", text: "+12%" }}
         />
@@ -90,9 +114,11 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
               Daily spending trend
             </h2>
-            <div className="text-xs text-neutral-500">Last 30 days</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">
+              {trendChartCaption(period)}
+            </div>
           </header>
-          <TrendChart data={trend} max={maxTrend} />
+          <TrendChart data={trend} baseCurrency={baseCurrency} isDark={isDark} />
         </section>
 
         <section className="col-span-1 rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 lg:col-span-2">
@@ -101,7 +127,7 @@ export default function Dashboard() {
           </h2>
           <ul className="space-y-4">
             {stats.breakdown.length === 0 && (
-              <li className="text-sm text-neutral-500">No spending yet this month.</li>
+              <li className="text-sm text-neutral-500 dark:text-neutral-400">No spending in this period.</li>
             )}
             {stats.breakdown.slice(0, 5).map((row) => {
               const cat = categories.find((c) => c.id === row.id);
@@ -155,9 +181,12 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {items.slice(0, 5).map((e) => (
-                <ExpenseRow key={e.id} expense={e} />
-              ))}
+              {filterByPeriod(items, period)
+                .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+                .slice(0, 5)
+                .map((e) => (
+                  <ExpenseRow key={e.id} expense={e} />
+                ))}
             </tbody>
           </table>
         </section>
@@ -226,13 +255,48 @@ function uniqueDays(dates: string[]): number {
   return new Set(dates).size;
 }
 
-interface TrendBucket {
+interface TrendBucketRaw {
   date: string;
   total: number;
 }
 
-function buildDailyTrend(items: { date: string; amount_minor: number }[], days: number): TrendBucket[] {
-  const buckets: TrendBucket[] = [];
+interface TrendBucket extends TrendBucketRaw {
+  label: string;
+}
+
+function trendChartCaption(period: PeriodId): string {
+  const { start, end } = periodRange(period);
+  if (!start || !end) return "Last 30 days";
+  const days = end.diff(start, "day") + 1;
+  if (days <= 31) return start.format("MMMM YYYY");
+  return `${start.format("MMM D")} – ${end.format("MMM D, YYYY")}`;
+}
+
+function buildDailyTrendForPeriod(
+  items: { date: string; amount_minor: number }[],
+  period: PeriodId,
+): TrendBucketRaw[] {
+  const { start, end } = periodRange(period);
+  if (!start || !end) return buildDailyTrend(filterByPeriod(items, period), 30);
+
+  const buckets: TrendBucketRaw[] = [];
+  let cursor = start;
+  while (cursor.isBefore(end, "day") || cursor.isSame(end, "day")) {
+    buckets.push({ date: cursor.format("YYYY-MM-DD"), total: 0 });
+    cursor = cursor.add(1, "day");
+    if (buckets.length >= 62) break;
+  }
+  const periodItems = filterByPeriod(items, period);
+  const index = new Map(buckets.map((b, i) => [b.date, i]));
+  for (const item of periodItems) {
+    const i = index.get(toDateKey(item.date));
+    if (i !== undefined) buckets[i].total += item.amount_minor;
+  }
+  return buckets;
+}
+
+function buildDailyTrend(items: { date: string; amount_minor: number }[], days: number): TrendBucketRaw[] {
+  const buckets: TrendBucketRaw[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
@@ -240,35 +304,81 @@ function buildDailyTrend(items: { date: string; amount_minor: number }[], days: 
   }
   const index = new Map(buckets.map((b, i) => [b.date, i]));
   for (const item of items) {
-    const i = index.get(item.date);
+    const i = index.get(toDateKey(item.date));
     if (i !== undefined) buckets[i].total += item.amount_minor;
   }
   return buckets;
 }
 
-function TrendChart({ data, max }: { data: TrendBucket[]; max: number }) {
+function TrendChart({
+  data,
+  baseCurrency,
+  isDark,
+}: {
+  data: TrendBucket[];
+  baseCurrency: string;
+  isDark: boolean;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="flex h-44 items-center justify-center text-sm text-neutral-500 dark:text-neutral-400">
+        No spending in this period
+      </div>
+    );
+  }
+
+  const chartAxisTick = isDark ? "#a1a1aa" : "#737373";
+  const gradientId = isDark ? "dashboardTrendFillDark" : "dashboardTrendFill";
+  const tickInterval = Math.max(0, Math.floor(data.length / 7) - 1);
+
   return (
-    <div className="flex h-44 items-end gap-1.5">
-      {data.map((d, i) => {
-        const heightPct = max === 0 ? 0 : (d.total / max) * 100;
-        return (
-          <div
-            key={d.date}
-            className="group relative flex-1"
-            title={`${d.date}: ${(d.total / 100).toFixed(2)} USD`}
-          >
-            <div
-              className="w-full rounded-sm bg-accent/80 transition-all group-hover:bg-accent"
-              style={{ height: `${Math.max(2, heightPct)}%` }}
-            />
-            {(i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)) && (
-              <div className="mt-1 text-center text-[10px] uppercase tracking-wider text-neutral-400">
-                {d.date.slice(5)}
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <div className="h-44">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="dashboardTrendFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="dashboardTrendFillDark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#818cf8" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 10, fill: chartAxisTick }}
+            axisLine={false}
+            tickLine={false}
+            interval={tickInterval}
+            tickFormatter={(value) => formatChartDate(String(value))}
+          />
+          <YAxis hide />
+          <Tooltip
+            contentStyle={{
+              background: isDark ? "#262626" : "#171717",
+              border: "1px solid " + (isDark ? "#404040" : "transparent"),
+              borderRadius: 6,
+              color: "#fafafa",
+              fontSize: 12,
+            }}
+            formatter={(v: number) => [formatMinor(v, baseCurrency), "Spent"]}
+            labelFormatter={(_, payload) => {
+              const row = payload?.[0]?.payload as TrendBucket | undefined;
+              if (!row?.date) return "";
+              if (row.label === "Today") return "Today";
+              return formatDate(row.date, "MMM D, YYYY");
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="total"
+            stroke={isDark ? "#818cf8" : "#6366f1"}
+            strokeWidth={2}
+            fill={`url(#${gradientId})`}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
