@@ -10,7 +10,7 @@ import { formatMinor } from "@/lib/money";
 import dayjs from "dayjs";
 import type { Expense } from "@/types";
 
-const BASE_CURRENCY = "USD";
+import { useSettings } from "@/store/settings";
 
 const PERIOD_OPTIONS: FilterOption[] = [
   { id: "this_month", label: "This month" },
@@ -36,6 +36,7 @@ const DEFAULT_FILTERS = {
 };
 
 export default function Expenses() {
+  const baseCurrency = useSettings((s) => s.baseCurrency);
   const items = useExpenses((s) => s.items);
   const categories = useCategories((s) => s.items);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -102,7 +103,7 @@ export default function Expenses() {
         <div className="border-b border-neutral-100 px-6 py-3 text-sm text-neutral-500 dark:border-neutral-800">
           Showing <span className="font-medium text-neutral-700 dark:text-neutral-300">{filtered.length}</span>{" "}
           {filtered.length === 1 ? "expense" : "expenses"} ·{" "}
-          Total <span className="font-medium text-neutral-900 dark:text-neutral-50">{formatMinor(total, BASE_CURRENCY)}</span>
+          Total <span className="font-medium text-neutral-900 dark:text-neutral-50">{formatMinor(total, baseCurrency)}</span>
         </div>
 
         {groups.length === 0 ? (
@@ -118,12 +119,12 @@ export default function Expenses() {
                     {formatDate(group.date, "dddd, MMM D")}
                   </span>
                   <span className="tabular-nums text-neutral-500">
-                    {formatMinor(group.total, BASE_CURRENCY)}
+                    {formatMinor(group.total, baseCurrency)}
                   </span>
                 </header>
                 <ul>
                   {group.items.map((e) => (
-                    <ExpenseListItem key={e.id} expense={e} baseCurrency={BASE_CURRENCY} />
+                    <ExpenseListItem key={e.id} expense={e} baseCurrency={baseCurrency} />
                   ))}
                 </ul>
               </section>

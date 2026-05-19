@@ -1,6 +1,7 @@
 // Categories store: in-memory CRUD until the Rust backend is wired up.
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Category } from "@/types";
 
 const seedCategories: Category[] = [
@@ -55,9 +56,12 @@ interface CategoriesState {
   ) => void;
   addCategory: (input: { name: string; color: string; icon: string }) => string;
   toggleActive: (id: string) => void;
+  replaceAll: (items: Category[]) => void;
 }
 
-export const useCategories = create<CategoriesState>((set) => ({
+export const useCategories = create<CategoriesState>()(
+  persist(
+    (set) => ({
   items: seedCategories,
   updateCategory: (id, patch) =>
     set((state) => ({
@@ -90,7 +94,14 @@ export const useCategories = create<CategoriesState>((set) => ({
         c.id === id ? { ...c, is_active: !c.is_active, updated_at: new Date().toISOString() } : c,
       ),
     })),
-}));
+  replaceAll: (items) => set({ items }),
+    }),
+    {
+      name: "expense-tracker-categories",
+      partialize: (state) => ({ items: state.items }),
+    },
+  ),
+);
 
 export function getCategory(id: string): Category | undefined {
   return useCategories.getState().items.find((c) => c.id === id);

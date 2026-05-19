@@ -3,10 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-accent: #6366f1;
+    --color-accent-hover: #4f46e5;
+  }
   html {
     font-feature-settings: "cv11", "ss01", "ss03";
   }
   body {
     @apply font-sans antialiased;
+  }
+
+  /* Native selects: readable options in dark mode (Chrome / Firefox) */
+  html.dark select {
+    color-scheme: dark;
+  }
+  html.dark select option {
+    background-color: #262626;
+    color: #fafafa;
   }
 }

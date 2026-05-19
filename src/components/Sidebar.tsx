@@ -1,21 +1,16 @@
 // Persistent left sidebar with primary navigation and quick-add hint.
 
+import { useTranslation } from "react-i18next";
 import { useUi } from "@/store/ui";
 
-interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const navItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: <DashboardIcon /> },
-  { id: "expenses", label: "Expenses", icon: <ListIcon /> },
-  { id: "categories", label: "Categories", icon: <TagIcon /> },
-  { id: "budgets", label: "Budgets", icon: <ChartIcon /> },
-  { id: "reports", label: "Reports", icon: <ReportIcon /> },
-  { id: "settings", label: "Settings", icon: <SettingsIcon /> },
-];
+const navItems = [
+  { id: "dashboard", labelKey: "nav.dashboard", icon: <DashboardIcon /> },
+  { id: "expenses", labelKey: "nav.expenses", icon: <ListIcon /> },
+  { id: "categories", labelKey: "nav.categories", icon: <TagIcon /> },
+  { id: "budgets", labelKey: "nav.budgets", icon: <ChartIcon /> },
+  { id: "reports", labelKey: "nav.reports", icon: <ReportIcon /> },
+  { id: "settings", labelKey: "nav.settings", icon: <SettingsIcon /> },
+] as const;
 
 interface SidebarProps {
   activeId: string;
@@ -23,6 +18,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
+  const { t } = useTranslation();
   const openAddExpense = useUi((s) => s.openAddExpense);
 
   return (
@@ -39,10 +35,10 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
         </div>
         <div>
           <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
-            Expense Tracker
+            {t("app.name")}
           </div>
           <div className="text-[10px] uppercase tracking-wider text-neutral-500">
-            Personal Finance
+            {t("app.tagline")}
           </div>
         </div>
       </div>
@@ -62,7 +58,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
               }
             >
               <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </button>
           );
         })}
@@ -77,7 +73,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
-            Quick add
+            {t("actions.quickAdd")}
           </span>
           <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium dark:bg-neutral-900/15">
             Ctrl+N

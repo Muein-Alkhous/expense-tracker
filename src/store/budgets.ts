@@ -2,6 +2,7 @@
 // Category budgets must sum to at most totalMonthlyMinor (master cap).
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface CategoryBudget {
   categoryId: string;
@@ -14,6 +15,7 @@ interface BudgetsState {
   setTotalMonthly: (limitMinor: number) => boolean;
   setBudget: (categoryId: string, limitMinor: number) => boolean;
   removeBudget: (categoryId: string) => void;
+  replaceAll: (data: { totalMonthlyMinor: number; items: CategoryBudget[] }) => void;
 }
 
 const seedBudgets: CategoryBudget[] = [
@@ -70,7 +72,9 @@ export function canSetTotalMonthly(
   return sumCategoryBudgetsMinor(items) <= newTotalMinor;
 }
 
-export const useBudgets = create<BudgetsState>((set, get) => ({
+export const useBudgets = create<BudgetsState>()(
+  persist(
+    (set, get) => ({
   totalMonthlyMinor: 50000,
   items: seedBudgets,
   setTotalMonthly: (limitMinor) => {
@@ -100,4 +104,14 @@ export const useBudgets = create<BudgetsState>((set, get) => ({
     set((state) => ({
       items: state.items.filter((b) => b.categoryId !== categoryId),
     })),
-}));
+  replaceAll: (data) => set(data),
+    }),
+    {
+      name: "expense-tracker-budgets",
+      partialize: (state) => ({
+        totalMonthlyMinor: state.totalMonthlyMinor,
+        items: state.items,
+      }),
+    },
+  ),
+);

@@ -17,7 +17,9 @@ import { PAYMENT_METHODS, useExpenses } from "@/store/expenses";
 import { useCategories } from "@/store/categories";
 import { useUi } from "@/store/ui";
 import { today, daysAgo } from "@/lib/date";
+import { parseQuickAddText } from "@/lib/quickAddParser";
 import { toMinor } from "@/lib/money";
+import { useSettings } from "@/store/settings";
 import type { PaymentMethod } from "@/types";
 
 const CURRENCIES = ["USD", "EUR", "TRY", "SYP"] as const;
@@ -26,6 +28,8 @@ export default function AddExpenseModal() {
   const open = useUi((s) => s.addExpenseOpen);
   const close = useUi((s) => s.closeAddExpense);
   const addExpense = useExpenses((s) => s.addExpense);
+  const quickAddParser = useSettings((s) => s.quickAddParser);
+  const defaultCurrency = useSettings((s) => s.baseCurrency);
 
   const allCategories = useCategories((s) => s.items);
   const categories = useMemo(
@@ -48,7 +52,7 @@ export default function AddExpenseModal() {
     if (!open) return;
     const active = useCategories.getState().items.filter((c) => c.is_active);
     setAmount("");
-    setCurrency("USD");
+    setCurrency(defaultCurrency);
     setCategoryId(active[0]?.id ?? "");
     setDate(today());
     setNote("");
@@ -56,7 +60,28 @@ export default function AddExpenseModal() {
     setTags([]);
     setTagDraft("");
     setTimeout(() => amountRef.current?.focus(), 50);
-  }, [open]);
+  }, [open, defaultCurrency]);
+
+  function applyQuickAdd(text: string) {
+    if (!quickAddParser || !text.trim()) return;
+    const parsed = parseQuickAddText(text);
+    if (parsed.amount) setAmount(parsed.amount);
+    if (parsed.date) setDate(parsed.date);
+    if (parsed.note) {
+      const parts = parsed.note.trim().split(/\s+/);
+      const first = parts[0]?.toLowerCase();
+      const cat = categories.find(
+        (c) => c.id === first || c.name.toLowerCase() === first,
+      );
+      if (cat) {
+        setCategoryId(cat.id);
+        const rest = parts.slice(1).join(" ");
+        setNote(rest || parsed.note);
+      } else {
+        setNote(parsed.note);
+      }
+    }
+  }
 
   function handleTagKey(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && tagDraft.trim()) {
@@ -168,7 +193,13 @@ export default function AddExpenseModal() {
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="What was this for?"
+          onBlur={(e) => applyQuickAdd(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && quickAddParser) {
+              applyQuickAdd(note);
+            }
+          }}
+          placeholder={quickAddParser ? 'e.g. "42.50 food lunch" or "15 transport"' : "What was this for?"}
           className="w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none"
         />
 
@@ -219,9 +250,11 @@ export default function AddExpenseModal() {
           />
         </div>
 
-        <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-400">
-          Tip: type "50 food lunch" to auto-parse
-        </p>
+        {quickAddParser && (
+          <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-400">
+            Tip: type &quot;50 food lunch&quot; in the note field, then press Enter or tab away
+          </p>
+        )}
 
         <button type="submit" className="hidden" />
       </form>

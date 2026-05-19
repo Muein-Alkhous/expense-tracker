@@ -14,7 +14,7 @@ import {
 } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 
-const BASE_CURRENCY = "USD";
+import { useSettings } from "@/store/settings";
 
 interface CategoryDraft {
   name: string;
@@ -31,6 +31,7 @@ const EMPTY_DRAFT: CategoryDraft = {
 };
 
 export default function Categories() {
+  const baseCurrency = useSettings((s) => s.baseCurrency);
   const categories = useCategories((s) => s.items);
   const updateCategory = useCategories((s) => s.updateCategory);
   const addCategory = useCategories((s) => s.addCategory);
@@ -140,7 +141,7 @@ export default function Categories() {
     <div className="flex h-full flex-col p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400">
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -149,7 +150,7 @@ export default function Categories() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search categories..."
-            className="w-full rounded-control border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+            className="w-full rounded-control border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
           />
         </div>
         <Button onClick={startCreate}>
@@ -163,14 +164,16 @@ export default function Categories() {
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="flex flex-col overflow-hidden rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:col-span-3">
           <header className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Active categories
             </h2>
-            <span className="text-xs text-neutral-400">{filtered.length} items</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">{filtered.length} items</span>
           </header>
           <div className="flex-1 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="p-8 text-center text-sm text-neutral-500">No categories match your search.</p>
+              <p className="p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                No categories match your search.
+              </p>
             ) : (
               filtered.map((cat) => {
                 const row = stats.get(cat.id) ?? { count: 0, total: 0 };
@@ -180,7 +183,7 @@ export default function Categories() {
                     category={cat}
                     expenseCount={row.count}
                     totalMinor={row.total}
-                    totalFormatted={formatMinor(row.total, BASE_CURRENCY)}
+                    totalFormatted={formatMinor(row.total, baseCurrency)}
                     selected={!isCreating && selectedId === cat.id}
                     onSelect={() => loadDraft(cat.id)}
                     onToggleActive={() => handleToggleActive(cat.id)}
@@ -197,7 +200,7 @@ export default function Categories() {
               <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
                 {isCreating ? "New Category" : "Edit Category"}
               </h2>
-              <div className="flex items-center gap-2 text-xs text-neutral-500">
+              <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 Active
                 <Toggle
                   checked={draft.is_active}
@@ -209,7 +212,7 @@ export default function Categories() {
 
             <div className="space-y-5">
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                   Category name
                 </label>
                 <Input
@@ -220,7 +223,7 @@ export default function Categories() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                   Category color
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -242,7 +245,7 @@ export default function Categories() {
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                  <label className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                     Icon
                   </label>
                   <span className="text-xs text-accent">Browse all</span>
@@ -259,7 +262,7 @@ export default function Categories() {
                           "flex h-10 w-10 items-center justify-center rounded-control border transition-colors " +
                           (active
                             ? "border-accent bg-accent text-white"
-                            : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300")
+                            : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-500")
                         }
                       >
                         <CategoryIcon name={icon} size={16} />
@@ -281,8 +284,8 @@ export default function Categories() {
           </div>
 
           {insightCategory && insightStats && (
-            <div className="rounded-card border border-accent/20 bg-accent/5 p-5">
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-accent">
+            <div className="rounded-card border border-accent/20 bg-accent/5 p-5 dark:border-accent/30 dark:bg-accent/10">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-accent dark:text-indigo-300">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 18h6" /><path d="M10 22h4" />
                   <path d="M12 2a7 7 0 0 0-4 12v1H6a1 1 0 0 0-1 1v2h12a1 1 0 0 0 1-1v-2h-2v-1a7 7 0 0 0-4-12z" />
@@ -292,7 +295,7 @@ export default function Categories() {
               <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
                 <strong className="text-neutral-900 dark:text-neutral-50">{insightCategory.name}</strong> has{" "}
                 {insightStats.count} recorded {insightStats.count === 1 ? "expense" : "expenses"} totalling{" "}
-                {formatMinor(insightStats.total, BASE_CURRENCY)}. Consider setting a budget for this category
+                {formatMinor(insightStats.total, baseCurrency)}. Consider setting a budget for this category
                 if spending feels high.
               </p>
             </div>

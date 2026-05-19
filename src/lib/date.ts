@@ -19,10 +19,15 @@ export function isThisMonth(date: string): boolean {
   return dayjs(date).isSame(now, "month");
 }
 
+function startOfCustomWeek(d: dayjs.Dayjs, weekStartDay: number): dayjs.Dayjs {
+  const diff = (d.day() - weekStartDay + 7) % 7;
+  return d.subtract(diff, "day").startOf("day");
+}
+
 export function isThisWeek(date: string, weekStartDay = 1): boolean {
-  const now = dayjs();
-  const start = now.startOf("week").add(weekStartDay, "day");
-  const end = start.add(7, "day");
   const d = dayjs(date);
-  return (d.isSame(start) || d.isAfter(start)) && d.isBefore(end);
+  const now = dayjs();
+  const start = startOfCustomWeek(now, weekStartDay);
+  const end = start.add(7, "day");
+  return !d.isBefore(start) && d.isBefore(end);
 }

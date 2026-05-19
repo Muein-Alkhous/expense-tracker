@@ -1,6 +1,8 @@
-// Settings store: theme, language, currency, backup prefs (see spec 11.5).
+// Settings store with localStorage persistence (see spec 11.5).
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { applyLanguage } from "@/lib/applySettings";
 import type { PageId } from "@/store/ui";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -12,7 +14,15 @@ export type SettingsSection =
   | "notifications"
   | "about";
 
-interface SettingsState {
+export interface BackupRecord {
+  id: string;
+  name: string;
+  date: string;
+  size: string;
+  encrypted: boolean;
+}
+
+interface SettingsData {
   theme: ThemeMode;
   language: string;
   baseCurrency: string;
@@ -26,8 +36,12 @@ interface SettingsState {
   encryptBackups: boolean;
   budgetAlerts: boolean;
   weeklyDigest: boolean;
+  backupHistory: BackupRecord[];
+}
+
+interface SettingsState extends SettingsData {
   setTheme: (theme: ThemeMode) => void;
-  setLanguage: (language: string) => void;
+  setLanguage: (language: string) => Promise<void>;
   setBaseCurrency: (code: string) => void;
   setWeekStartDay: (day: number) => void;
   setDefaultView: (view: PageId) => void;
@@ -39,9 +53,10 @@ interface SettingsState {
   setEncryptBackups: (on: boolean) => void;
   setBudgetAlerts: (on: boolean) => void;
   setWeeklyDigest: (on: boolean) => void;
+  addBackupRecord: (record: BackupRecord) => void;
 }
 
-export const useSettings = create<SettingsState>((set) => ({
+const initialData: SettingsData = {
   theme: "light",
   language: "en",
   baseCurrency: "USD",
@@ -55,20 +70,73 @@ export const useSettings = create<SettingsState>((set) => ({
   encryptBackups: false,
   budgetAlerts: true,
   weeklyDigest: false,
-  setTheme: (theme) => set({ theme }),
-  setLanguage: (language) => set({ language }),
-  setBaseCurrency: (baseCurrency) => set({ baseCurrency }),
-  setWeekStartDay: (weekStartDay) => set({ weekStartDay }),
-  setDefaultView: (defaultView) => set({ defaultView }),
-  setQuickAddParser: (quickAddParser) => set({ quickAddParser }),
-  setAccentColor: (accentColor) => set({ accentColor }),
-  setBackupPath: (backupPath) => set({ backupPath }),
-  setAutoBackup: (autoBackup) => set({ autoBackup }),
-  setBackupFrequency: (backupFrequency) => set({ backupFrequency }),
-  setEncryptBackups: (encryptBackups) => set({ encryptBackups }),
-  setBudgetAlerts: (budgetAlerts) => set({ budgetAlerts }),
-  setWeeklyDigest: (weeklyDigest) => set({ weeklyDigest }),
-}));
+  backupHistory: [],
+};
+
+export const useSettings = create<SettingsState>()(
+  persist(
+    (set) => ({
+      ...initialData,
+      setTheme: (theme) => set({ theme }),
+      setLanguage: async (language) => {
+        set({ language });
+        await applyLanguage(language);
+      },
+      setBaseCurrency: (baseCurrency) => set({ baseCurrency }),
+      setWeekStartDay: (weekStartDay) => set({ weekStartDay }),
+      setDefaultView: (defaultView) => set({ defaultView }),
+      setQuickAddParser: (quickAddParser) => set({ quickAddParser }),
+      setAccentColor: (accentColor) => set({ accentColor }),
+      setBackupPath: (backupPath) => set({ backupPath }),
+      setAutoBackup: (autoBackup) => set({ autoBackup }),
+      setBackupFrequency: (backupFrequency) => set({ backupFrequency }),
+      setEncryptBackups: (encryptBackups) => set({ encryptBackups }),
+      setBudgetAlerts: (budgetAlerts) => set({ budgetAlerts }),
+      setWeeklyDigest: (weeklyDigest) => set({ weeklyDigest }),
+      addBackupRecord: (record) =>
+        set((state) => ({
+          backupHistory: [record, ...state.backupHistory].slice(0, 10),
+        })),
+    }),
+    {
+      name: "expense-tracker-settings",
+      partialize: (state) => {
+        const {
+          setTheme,
+          setLanguage,
+          setBaseCurrency,
+          setWeekStartDay,
+          setDefaultView,
+          setQuickAddParser,
+          setAccentColor,
+          setBackupPath,
+          setAutoBackup,
+          setBackupFrequency,
+          setEncryptBackups,
+          setBudgetAlerts,
+          setWeeklyDigest,
+          addBackupRecord,
+          ...data
+        } = state;
+        void setTheme;
+        void setLanguage;
+        void setBaseCurrency;
+        void setWeekStartDay;
+        void setDefaultView;
+        void setQuickAddParser;
+        void setAccentColor;
+        void setBackupPath;
+        void setAutoBackup;
+        void setBackupFrequency;
+        void setEncryptBackups;
+        void setBudgetAlerts;
+        void setWeeklyDigest;
+        void addBackupRecord;
+        return data;
+      },
+    },
+  ),
+);
 
 export const ACCENT_SWATCHES = [
   "#6366f1",
@@ -76,10 +144,4 @@ export const ACCENT_SWATCHES = [
   "#ec4899",
   "#f97316",
   "#0ea5e9",
-] as const;
-
-export const MOCK_BACKUPS = [
-  { name: "expense_tracker_backup_2026-05-18.json", date: "May 18, 2026", size: "1.1 MB" },
-  { name: "expense_tracker_backup_2026-05-11.json", date: "May 11, 2026", size: "1.0 MB" },
-  { name: "expense_tracker_backup_2026-05-04.json", date: "May 4, 2026", size: "980 KB" },
 ] as const;

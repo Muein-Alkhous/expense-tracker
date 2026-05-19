@@ -31,7 +31,7 @@ export default function CategoryListItem({
         (selected ? "bg-accent/5" : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50")
       }
     >
-      <span className="cursor-grab text-neutral-300" aria-hidden="true">
+      <span className="cursor-grab text-neutral-300 dark:text-neutral-600" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
           <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
           <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
@@ -48,7 +48,7 @@ export default function CategoryListItem({
         <span className="block truncate text-sm font-medium text-neutral-900 dark:text-neutral-50">
           {category.name}
         </span>
-        <span className="block truncate text-xs text-neutral-500">
+        <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">
           {expenseCount} {expenseCount === 1 ? "expense" : "expenses"} · {totalFormatted} total
         </span>
       </span>

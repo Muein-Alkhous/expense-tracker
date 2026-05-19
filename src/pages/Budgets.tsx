@@ -30,7 +30,7 @@ function MiniSparkline({ values }: { values: number[] }) {
       {values.map((v, i) => (
         <span
           key={i}
-          className="w-1 rounded-sm bg-neutral-300"
+          className="w-1 rounded-sm bg-neutral-300 dark:bg-neutral-600"
           style={{ height: `${Math.max(15, (v / max) * 100)}%` }}
         />
       ))}
@@ -62,6 +62,7 @@ export default function Budgets() {
   const totalLimit = useBudgets((s) => s.totalMonthlyMinor);
   const openNewBudget = useUi((s) => s.openNewBudget);
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const budgetAlerts = useSettings((s) => s.budgetAlerts);
 
   const monthLabel = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -101,12 +102,41 @@ export default function Budgets() {
     return categories.filter((c) => c.is_active && !budgeted.has(c.id));
   }, [categories, budgetItems]);
 
+  const alertMessages = useMemo(() => {
+    if (!budgetAlerts) return [];
+    const msgs: string[] = [];
+    if (totalState === "exceeded") {
+      msgs.push(`Monthly spending exceeds your ${formatMinor(totalLimit, baseCurrency)} cap.`);
+    } else if (totalState === "warning") {
+      msgs.push(`Monthly spending is at ${totalPct}% of your cap.`);
+    }
+    for (const b of budgetItems) {
+      const spent = spentByCategory.get(b.categoryId) ?? 0;
+      if (spent > b.limitMinor) {
+        const cat = categories.find((c) => c.id === b.categoryId);
+        msgs.push(
+          `${cat?.name ?? "Category"} is over budget by ${formatMinor(spent - b.limitMinor, baseCurrency)}.`,
+        );
+      }
+    }
+    return msgs;
+  }, [
+    budgetAlerts,
+    totalState,
+    totalPct,
+    totalLimit,
+    baseCurrency,
+    budgetItems,
+    spentByCategory,
+    categories,
+  ]);
+
   return (
     <div className="space-y-6 p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50"
+          className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
         >
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -125,15 +155,26 @@ export default function Budgets() {
         </Button>
       </div>
 
-      <section className="rounded-card border border-neutral-200 bg-white p-6 shadow-sm">
+      {alertMessages.length > 0 && (
+        <div className="rounded-card border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-700/50 dark:bg-amber-950/40 dark:text-amber-100">
+          <p className="mb-1 font-medium">Budget alerts</p>
+          <ul className="list-inside list-disc space-y-0.5 text-amber-900 dark:text-amber-200/90">
+            {alertMessages.map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <section className="rounded-card border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Total monthly budget
             </p>
-            <p className="mt-1 text-3xl font-semibold tabular-nums text-neutral-900">
+            <p className="mt-1 text-3xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
               {formatMinor(totalLimit, baseCurrency)}{" "}
-              <span className="text-lg font-normal text-neutral-500">{baseCurrency}</span>
+              <span className="text-lg font-normal text-neutral-500 dark:text-neutral-400">{baseCurrency}</span>
             </p>
           </div>
           {totalState !== "ok" && (
@@ -141,8 +182,8 @@ export default function Budgets() {
               className={
                 "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
                 (totalState === "exceeded"
-                  ? "bg-rose-50 text-rose-600"
-                  : "bg-amber-50 text-amber-700")
+                  ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200")
               }
             >
               {totalState === "exceeded" ? "Over budget" : "High usage"}
@@ -150,14 +191,14 @@ export default function Budgets() {
           )}
         </div>
 
-        <div className="mb-2 flex items-center justify-between text-sm text-neutral-600">
+        <div className="mb-2 flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-300">
           <span>
             {formatMinor(totalSpent, baseCurrency)} spent of{" "}
             {formatMinor(totalLimit, baseCurrency)}
           </span>
-          <span className="font-medium tabular-nums text-neutral-900">{totalPct}%</span>
+          <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-50">{totalPct}%</span>
         </div>
-        <div className="h-2.5 overflow-hidden rounded-full bg-neutral-100">
+        <div className="h-2.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
           <div
             className="h-full transition-all"
             style={{
@@ -171,7 +212,7 @@ export default function Budgets() {
             }}
           />
         </div>
-        <p className="mt-4 flex items-start gap-2 text-sm text-neutral-500">
+        <p className="mt-4 flex items-start gap-2 text-sm text-neutral-500 dark:text-neutral-400">
           <svg className="mt-0.5 shrink-0" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
@@ -182,17 +223,17 @@ export default function Budgets() {
             : `${formatMinor(totalRemaining, baseCurrency)} remaining for ${monthLabel.split(" ")[0]}.`}
         </p>
 
-        <div className="mt-5 border-t border-neutral-100 pt-4">
-          <div className="mb-2 flex items-center justify-between text-sm text-neutral-600">
+        <div className="mt-5 border-t border-neutral-100 pt-4 dark:border-neutral-800">
+          <div className="mb-2 flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-300">
             <span>
               Category budgets: {formatMinor(allocatedMinor, baseCurrency)} allocated of{" "}
               {formatMinor(totalLimit, baseCurrency)}
             </span>
-            <span className="text-xs text-neutral-500">
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">
               {formatMinor(unallocatedMinor, baseCurrency)} unallocated
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
+          <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
             <div
               className="h-full bg-neutral-400 transition-all"
               style={{
@@ -216,7 +257,7 @@ export default function Budgets() {
           return (
             <article
               key={b.categoryId}
-              className="rounded-card border border-neutral-200 bg-white p-5 shadow-sm"
+              className="rounded-card border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
             >
               <div className="mb-4 flex items-center gap-3">
                 <span
@@ -225,25 +266,25 @@ export default function Budgets() {
                 >
                   <CategoryIcon name={cat.icon} size={18} />
                 </span>
-                <h3 className="font-semibold text-neutral-900">{cat.name}</h3>
+                <h3 className="font-semibold text-neutral-900 dark:text-neutral-50">{cat.name}</h3>
               </div>
 
               <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="text-neutral-600">
+                <span className="text-neutral-600 dark:text-neutral-300">
                   Spent {formatMinor(spent, baseCurrency)} of{" "}
                   {formatMinor(b.limitMinor, baseCurrency)}
                 </span>
                 <span
                   className={
                     "font-medium tabular-nums " +
-                    (state === "exceeded" ? "text-rose-600" : "text-neutral-900")
+                    (state === "exceeded" ? "text-rose-500 dark:text-rose-400" : "text-neutral-900 dark:text-neutral-50")
                   }
                 >
                   {pct}%
                 </span>
               </div>
 
-              <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+              <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                 <div
                   className="h-full transition-all"
                   style={{
@@ -253,7 +294,7 @@ export default function Budgets() {
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-2 text-xs text-neutral-500">
+              <div className="flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <span>
                   {state === "exceeded"
                     ? `Over by ${formatMinor(Math.abs(remaining), baseCurrency)}`
@@ -268,7 +309,7 @@ export default function Budgets() {
         {unbudgetedCategories.slice(0, 1).map((cat) => (
           <article
             key={cat.id}
-            className="flex flex-col items-center justify-center rounded-card border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-8 text-center"
+            className="flex flex-col items-center justify-center rounded-card border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-8 text-center dark:border-neutral-700 dark:bg-neutral-900/50"
           >
             <span
               className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg text-white opacity-60"
@@ -276,8 +317,8 @@ export default function Budgets() {
             >
               <CategoryIcon name={cat.icon} size={20} />
             </span>
-            <p className="text-sm text-neutral-600">
-              Set budget for <strong className="text-neutral-900">{cat.name}</strong>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              Set budget for <strong className="text-neutral-900 dark:text-neutral-50">{cat.name}</strong>
             </p>
             <button
               type="button"

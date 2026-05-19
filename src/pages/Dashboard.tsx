@@ -16,11 +16,12 @@ export default function Dashboard() {
   const categories = useCategories((s) => s.items);
   const budgetItems = useBudgets((s) => s.items);
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const weekStartDay = useSettings((s) => s.weekStartDay);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
 
   const stats = useMemo(() => {
     const monthExpenses = items.filter((e) => isThisMonth(e.date));
-    const weekExpenses = items.filter((e) => isThisWeek(e.date));
+    const weekExpenses = items.filter((e) => isThisWeek(e.date, weekStartDay));
 
     const monthTotal = monthExpenses.reduce((acc, e) => acc + e.amount_minor, 0);
     const weekTotal = weekExpenses.reduce((acc, e) => acc + e.amount_minor, 0);
@@ -43,7 +44,7 @@ export default function Dashboard() {
       : 0;
 
     return { monthExpenses, monthTotal, weekTotal, dailyAvg, breakdown, topCategory, topCategoryPct };
-  }, [items, categories]);
+  }, [items, categories, weekStartDay]);
 
   const trend = useMemo(() => buildDailyTrend(items, 30), [items]);
   const maxTrend = Math.max(1, ...trend.map((d) => d.total));

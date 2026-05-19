@@ -15,8 +15,10 @@ import {
   YAxis,
 } from "recharts";
 import Button from "@/components/ui/Button";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import { formatDate, isThisMonth } from "@/lib/date";
 import { formatMinor } from "@/lib/money";
+import { printMonthlyStatement } from "@/lib/printStatement";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
@@ -37,6 +39,7 @@ export default function Reports() {
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openExportCsv = useUi((s) => s.openExportCsv);
   const [trendRange, setTrendRange] = useState<TrendRange>("60");
+  const isDark = useDarkMode();
 
   const thisMonth = useMemo(() => expenses.filter((e) => isThisMonth(e.date)), [expenses]);
   const lastMonth = useMemo(() => {
@@ -200,12 +203,16 @@ export default function Reports() {
       : []),
   ];
 
+  const chartAxisTick = isDark ? "#a1a1aa" : "#737373";
+  const chartBarMuted = isDark ? "#3f3f46" : "#e5e5e5";
+  const trendGradientId = isDark ? "trendFillDark" : "trendFill";
+
   return (
     <div className="space-y-6 p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50"
+          className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
         >
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -225,8 +232,8 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-card border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900">Spending by category</h2>
+        <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Spending by category</h2>
           <div className="flex flex-col items-center gap-6 sm:flex-row">
             <div className="h-52 w-52 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -247,21 +254,25 @@ export default function Reports() {
               </ResponsiveContainer>
               <div className="pointer-events-none -mt-[7.5rem] flex h-0 justify-center">
                 <div className="text-center">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">Total</p>
-                  <p className="text-lg font-semibold tabular-nums">{formatMinor(monthTotal, baseCurrency)}</p>
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                    Total
+                  </p>
+                  <p className="text-lg font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
+                    {formatMinor(monthTotal, baseCurrency)}
+                  </p>
                 </div>
               </div>
             </div>
             <ul className="flex-1 space-y-3">
               {pieSlices.map((row) => (
                 <li key={row.id} className="flex items-center justify-between text-sm">
-                  <span className="inline-flex items-center gap-2 text-neutral-700">
+                  <span className="inline-flex items-center gap-2 text-neutral-700 dark:text-neutral-200">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
                     {row.name}
                   </span>
-                  <span className="tabular-nums text-neutral-900">
+                  <span className="tabular-nums text-neutral-900 dark:text-neutral-50">
                     {formatMinor(row.total, baseCurrency)}{" "}
-                    <span className="text-neutral-400">
+                    <span className="text-neutral-400 dark:text-neutral-500">
                       ({Math.round((row.total / Math.max(monthTotal, 1)) * 100)}%)
                     </span>
                   </span>
@@ -271,8 +282,8 @@ export default function Reports() {
           </div>
         </section>
 
-        <section className="rounded-card border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900">Compared to last month</h2>
+        <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Compared to last month</h2>
           <div className="space-y-6">
             <CompareBar
               label="SPENDING"
@@ -281,15 +292,19 @@ export default function Reports() {
             />
             <CompareBar label="SAVINGS" change={savingsChange} positiveIsBad={false} />
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-neutral-500">
+          <p className="mt-6 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
             {spendingChange > 0 ? (
               <>
-                Spending is up <strong className="text-neutral-800">{spendingChange.toFixed(1)}%</strong>{" "}
+                Spending is up{" "}
+                <strong className="text-neutral-800 dark:text-neutral-100">{spendingChange.toFixed(1)}%</strong>{" "}
                 compared to last month. Review your top categories to stay on track.
               </>
             ) : (
               <>
-                You spent <strong className="text-neutral-800">{Math.abs(spendingChange).toFixed(1)}% less</strong>{" "}
+                You spent{" "}
+                <strong className="text-neutral-800 dark:text-neutral-100">
+                  {Math.abs(spendingChange).toFixed(1)}% less
+                </strong>{" "}
                 than last month — nice work keeping costs down.
               </>
             )}
@@ -297,13 +312,13 @@ export default function Reports() {
         </section>
       </div>
 
-      <section className="rounded-card border border-neutral-200 bg-white p-6">
+      <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900">Daily spending trend</h2>
-            <p className="text-xs text-neutral-500">Trailing {trendDays} days activity</p>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Daily spending trend</h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">Trailing {trendDays} days activity</p>
           </div>
-          <div className="flex rounded-control border border-neutral-200 p-0.5 text-xs">
+          <div className="flex rounded-control border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-950">
             {(["all", "60", "30"] as TrendRange[]).map((r) => (
               <button
                 key={r}
@@ -312,8 +327,8 @@ export default function Reports() {
                 className={
                   "rounded px-3 py-1 font-medium uppercase tracking-wider transition-colors " +
                   (trendRange === r
-                    ? "bg-neutral-900 text-white"
-                    : "text-neutral-500 hover:text-neutral-900")
+                    ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100")
                 }
               >
                 {r === "all" ? "All" : `${r}D`}
@@ -329,10 +344,14 @@ export default function Reports() {
                   <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
                   <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
+                <linearGradient id="trendFillDark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#818cf8" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
+                </linearGradient>
               </defs>
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: "#a3a3a3" }}
+                tick={{ fontSize: 10, fill: chartAxisTick }}
                 axisLine={false}
                 tickLine={false}
                 interval="preserveStartEnd"
@@ -340,10 +359,10 @@ export default function Reports() {
               <YAxis hide />
               <Tooltip
                 contentStyle={{
-                  background: "#171717",
-                  border: "none",
+                  background: isDark ? "#262626" : "#171717",
+                  border: "1px solid " + (isDark ? "#404040" : "transparent"),
                   borderRadius: 6,
-                  color: "#fff",
+                  color: "#fafafa",
                   fontSize: 12,
                 }}
                 formatter={(v: number) => [formatMinor(v, baseCurrency), "Spent"]}
@@ -351,9 +370,9 @@ export default function Reports() {
               <Area
                 type="monotone"
                 dataKey="total"
-                stroke="#6366f1"
+                stroke={isDark ? "#818cf8" : "#6366f1"}
                 strokeWidth={2}
-                fill="url(#trendFill)"
+                fill={`url(#${trendGradientId})`}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -361,9 +380,9 @@ export default function Reports() {
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-card border border-neutral-200 bg-white">
-          <header className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
-            <h2 className="text-sm font-semibold text-neutral-900">Top transactions</h2>
+        <section className="rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+          <header className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Top transactions</h2>
             <button
               type="button"
               onClick={() => setCurrentPage("expenses")}
@@ -378,71 +397,88 @@ export default function Reports() {
               return (
                 <li
                   key={e.id}
-                  className="flex items-center gap-4 border-t border-neutral-100 px-6 py-4 first:border-t-0"
+                  className="flex items-center gap-4 border-t border-neutral-100 px-6 py-4 first:border-t-0 dark:border-neutral-800"
                 >
                   <span
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
                   >
                     {cat ? <CategoryIcon name={cat.icon} size={18} /> : "—"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-neutral-900">
+                    <p className="truncate font-medium text-neutral-900 dark:text-neutral-50">
                       {e.note ?? "Expense"}
                     </p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       {cat?.name} · {formatDate(e.date, "MMM D")}
                     </p>
                   </div>
-                  <span className="shrink-0 font-medium tabular-nums text-neutral-900">
+                  <span className="shrink-0 font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
                     −{formatMinor(e.amount_minor, e.currency_code)}
                   </span>
                 </li>
               );
             })}
             {topTransactions.length === 0 && (
-              <li className="px-6 py-8 text-center text-sm text-neutral-500">No transactions this month.</li>
+              <li className="px-6 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                No transactions this month.
+              </li>
             )}
           </ul>
         </section>
 
-        <section className="rounded-card border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900">Day-of-week pattern</h2>
+        <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Day-of-week pattern</h2>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dowData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <XAxis
                   dataKey="day"
-                  tick={{ fontSize: 10, fill: "#a3a3a3" }}
+                  tick={{ fontSize: 10, fill: chartAxisTick }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis hide />
                 <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                   {dowData.map((entry) => (
-                    <Cell key={entry.day} fill={entry.isPeak ? "#6366f1" : "#e5e5e5"} />
+                    <Cell
+                      key={entry.day}
+                      fill={entry.isPeak ? (isDark ? "#818cf8" : "#6366f1") : chartBarMuted}
+                    />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 flex justify-center gap-6 text-xs text-neutral-500">
+          <div className="mt-4 flex justify-center gap-6 text-xs text-neutral-500 dark:text-neutral-400">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Peak day
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-200" /> Daily average
+              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-300 dark:bg-neutral-600" /> Daily average
             </span>
           </div>
         </section>
       </div>
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-400">
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-400 dark:border-neutral-800 dark:text-neutral-500">
         <span>© {new Date().getFullYear()} Expense Tracker · Data stored locally</span>
         <div className="flex gap-4">
-          <button type="button" onClick={openExportCsv} className="hover:text-neutral-600">
+          <button
+            type="button"
+            onClick={openExportCsv}
+            className="hover:text-neutral-600 dark:hover:text-neutral-300"
+          >
             Download CSV
           </button>
-          <button type="button" className="hover:text-neutral-600">Print statement</button>
+          <button
+            type="button"
+            onClick={() =>
+              printMonthlyStatement(thisMonth, { baseCurrency })
+            }
+            className="hover:text-neutral-600 dark:hover:text-neutral-300"
+          >
+            Print statement
+          </button>
         </div>
       </footer>
     </div>
@@ -459,20 +495,22 @@ function InsightCard({
   text: ReactNode;
 }) {
   return (
-    <article className="rounded-card border border-neutral-200 bg-white p-4 shadow-sm">
+    <article className="rounded-card border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       {tag && (
         <span
           className={
             "mb-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
             (tagTone === "alert"
-              ? "bg-rose-50 text-rose-600"
-              : "bg-amber-50 text-amber-700")
+              ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+              : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200")
           }
         >
           {tag}
         </span>
       )}
-      <p className="text-sm leading-relaxed text-neutral-700">{text}</p>
+      <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 [&_strong]:text-neutral-900 dark:[&_strong]:text-neutral-100">
+        {text}
+      </p>
     </article>
   );
 }
@@ -489,21 +527,21 @@ function CompareBar({
   const isUp = change >= 0;
   const tone =
     (isUp && positiveIsBad) || (!isUp && !positiveIsBad)
-      ? "text-rose-600"
-      : "text-emerald-600";
+      ? "text-rose-600 dark:text-rose-400"
+      : "text-emerald-600 dark:text-emerald-400";
   const width = Math.min(100, Math.abs(change) * 4 + 40);
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-neutral-500">
+      <div className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         <span>{label}</span>
         <span className={tone}>
           {isUp ? "+" : ""}
           {change.toFixed(1)}%
         </span>
       </div>
-      <div className="relative h-2 overflow-hidden rounded-full bg-neutral-100">
-        <div className="absolute inset-y-0 left-0 w-3/5 rounded-full bg-neutral-200" />
+      <div className="relative h-2 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+        <div className="absolute inset-y-0 left-0 w-3/5 rounded-full bg-neutral-200 dark:bg-neutral-700" />
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-accent"
           style={{ width: `${width}%` }}

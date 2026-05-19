@@ -2,6 +2,7 @@
 // Will be replaced by a Tauri-backed store once the Rust backend lands.
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Expense, PaymentMethod } from "@/types";
 
 export { getCategory } from "@/store/categories";
@@ -44,21 +45,31 @@ interface NewExpenseInput {
 interface ExpensesState {
   items: Expense[];
   addExpense: (input: NewExpenseInput) => void;
+  replaceAll: (items: Expense[]) => void;
 }
 
-export const useExpenses = create<ExpensesState>((set) => ({
-  items: seedExpenses,
-  addExpense: (input) =>
-    set((state) => ({
-      items: [
-        {
-          id: crypto.randomUUID(),
-          is_recurring: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          ...input,
-        },
-        ...state.items,
-      ],
-    })),
-}));
+export const useExpenses = create<ExpensesState>()(
+  persist(
+    (set) => ({
+      items: seedExpenses,
+      addExpense: (input) =>
+        set((state) => ({
+          items: [
+            {
+              id: crypto.randomUUID(),
+              is_recurring: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              ...input,
+            },
+            ...state.items,
+          ],
+        })),
+      replaceAll: (items) => set({ items }),
+    }),
+    {
+      name: "expense-tracker-expenses",
+      partialize: (state) => ({ items: state.items }),
+    },
+  ),
+);

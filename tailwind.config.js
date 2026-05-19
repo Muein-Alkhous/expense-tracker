@@ -6,8 +6,8 @@ export default {
     extend: {
       colors: {
         accent: {
-          DEFAULT: "#6366f1",
-          hover: "#4f46e5",
+          DEFAULT: "var(--color-accent, #6366f1)",
+          hover: "var(--color-accent-hover, #4f46e5)",
         },
       },
       fontFamily: {
