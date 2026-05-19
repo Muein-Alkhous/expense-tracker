@@ -5,7 +5,8 @@ import KpiCard from "@/components/KpiCard";
 import ExpenseRow from "@/components/ExpenseRow";
 import { formatMinor } from "@/lib/money";
 import { isThisMonth, isThisWeek } from "@/lib/date";
-import { CATEGORIES, useExpenses } from "@/store/expenses";
+import { useCategories } from "@/store/categories";
+import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 
 const BASE_CURRENCY = "USD";
@@ -18,6 +19,7 @@ const BUDGETS: { categoryId: string; limitMinor: number }[] = [
 
 export default function Dashboard() {
   const items = useExpenses((s) => s.items);
+  const categories = useCategories((s) => s.items);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
 
   const stats = useMemo(() => {
@@ -39,13 +41,13 @@ export default function Dashboard() {
       .sort((a, b) => b.total - a.total);
 
     const topCategoryId = breakdown[0]?.id;
-    const topCategory = CATEGORIES.find((c) => c.id === topCategoryId);
+    const topCategory = categories.find((c) => c.id === topCategoryId);
     const topCategoryPct = topCategoryId
       ? Math.round((breakdown[0].total / Math.max(monthTotal, 1)) * 100)
       : 0;
 
     return { monthExpenses, monthTotal, weekTotal, dailyAvg, breakdown, topCategory, topCategoryPct };
-  }, [items]);
+  }, [items, categories]);
 
   const trend = useMemo(() => buildDailyTrend(items, 30), [items]);
   const maxTrend = Math.max(1, ...trend.map((d) => d.total));
@@ -105,7 +107,7 @@ export default function Dashboard() {
               <li className="text-sm text-neutral-500">No spending yet this month.</li>
             )}
             {stats.breakdown.slice(0, 5).map((row) => {
-              const cat = CATEGORIES.find((c) => c.id === row.id);
+              const cat = categories.find((c) => c.id === row.id);
               if (!cat) return null;
               const pct = Math.round((row.total / Math.max(stats.monthTotal, 1)) * 100);
               return (
@@ -169,7 +171,7 @@ export default function Dashboard() {
           </h2>
           <ul className="space-y-5">
             {BUDGETS.map((b) => {
-              const cat = CATEGORIES.find((c) => c.id === b.categoryId);
+              const cat = categories.find((c) => c.id === b.categoryId);
               if (!cat) return null;
               const spent = stats.monthExpenses
                 .filter((e) => e.category_id === b.categoryId)

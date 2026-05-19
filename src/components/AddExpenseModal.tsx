@@ -4,6 +4,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -12,7 +13,8 @@ import {
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import CategoryPill from "@/components/CategoryPill";
-import { CATEGORIES, PAYMENT_METHODS, useExpenses } from "@/store/expenses";
+import { PAYMENT_METHODS, useExpenses } from "@/store/expenses";
+import { useCategories } from "@/store/categories";
 import { useUi } from "@/store/ui";
 import { today, daysAgo } from "@/lib/date";
 import { toMinor } from "@/lib/money";
@@ -25,9 +27,15 @@ export default function AddExpenseModal() {
   const close = useUi((s) => s.closeAddExpense);
   const addExpense = useExpenses((s) => s.addExpense);
 
+  const allCategories = useCategories((s) => s.items);
+  const categories = useMemo(
+    () => allCategories.filter((c) => c.is_active),
+    [allCategories],
+  );
+
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<string>("USD");
-  const [categoryId, setCategoryId] = useState<string>(CATEGORIES[0].id);
+  const [categoryId, setCategoryId] = useState<string>("");
   const [date, setDate] = useState<string>(today());
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
@@ -37,17 +45,17 @@ export default function AddExpenseModal() {
   const amountRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
-      setAmount("");
-      setCurrency("USD");
-      setCategoryId(CATEGORIES[0].id);
-      setDate(today());
-      setNote("");
-      setPaymentMethod("cash");
-      setTags([]);
-      setTagDraft("");
-      setTimeout(() => amountRef.current?.focus(), 50);
-    }
+    if (!open) return;
+    const active = useCategories.getState().items.filter((c) => c.is_active);
+    setAmount("");
+    setCurrency("USD");
+    setCategoryId(active[0]?.id ?? "");
+    setDate(today());
+    setNote("");
+    setPaymentMethod("cash");
+    setTags([]);
+    setTagDraft("");
+    setTimeout(() => amountRef.current?.focus(), 50);
   }, [open]);
 
   function handleTagKey(e: KeyboardEvent<HTMLInputElement>) {
@@ -119,7 +127,7 @@ export default function AddExpenseModal() {
         />
 
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <CategoryPill
               key={c.id}
               category={c}

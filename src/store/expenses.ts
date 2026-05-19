@@ -2,16 +2,9 @@
 // Will be replaced by a Tauri-backed store once the Rust backend lands.
 
 import { create } from "zustand";
-import type { Category, Expense, PaymentMethod } from "@/types";
+import type { Expense, PaymentMethod } from "@/types";
 
-export const CATEGORIES: Category[] = [
-  { id: "food", name: "Food", color: "#ef4444", icon: "utensils", is_active: true, created_at: "", updated_at: "" },
-  { id: "transport", name: "Transport", color: "#f97316", icon: "car", is_active: true, created_at: "", updated_at: "" },
-  { id: "bills", name: "Bills", color: "#3b82f6", icon: "receipt", is_active: true, created_at: "", updated_at: "" },
-  { id: "shopping", name: "Shopping", color: "#a855f7", icon: "shopping-bag", is_active: true, created_at: "", updated_at: "" },
-  { id: "entertainment", name: "Entertainment", color: "#ec4899", icon: "film", is_active: true, created_at: "", updated_at: "" },
-  { id: "other", name: "Other", color: "#737373", icon: "more-horizontal", is_active: true, created_at: "", updated_at: "" },
-];
+export { getCategory } from "@/store/categories";
 
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "cash", label: "Cash" },
@@ -69,7 +62,3 @@ export const useExpenses = create<ExpensesState>((set) => ({
       ],
     })),
 }));
-
-export function getCategory(id: string): Category | undefined {
-  return CATEGORIES.find((c) => c.id === id);
-}

@@ -3,18 +3,14 @@
 import { useMemo, useState } from "react";
 import FilterDropdown, { type FilterOption } from "@/components/FilterDropdown";
 import ExpenseListItem from "@/components/ExpenseListItem";
-import { CATEGORIES, useExpenses } from "@/store/expenses";
+import { useCategories } from "@/store/categories";
+import { useExpenses } from "@/store/expenses";
 import { formatDate } from "@/lib/date";
 import { formatMinor } from "@/lib/money";
 import dayjs from "dayjs";
 import type { Expense } from "@/types";
 
 const BASE_CURRENCY = "USD";
-
-const CATEGORY_OPTIONS: FilterOption[] = [
-  { id: "all", label: "All categories" },
-  ...CATEGORIES.map((c) => ({ id: c.id, label: c.name })),
-];
 
 const PERIOD_OPTIONS: FilterOption[] = [
   { id: "this_month", label: "This month" },
@@ -41,9 +37,21 @@ const DEFAULT_FILTERS = {
 
 export default function Expenses() {
   const items = useExpenses((s) => s.items);
+  const categories = useCategories((s) => s.items);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  const filtered = useMemo(() => filterExpenses(items, filters), [items, filters]);
+  const categoryOptions: FilterOption[] = useMemo(
+    () => [
+      { id: "all", label: "All categories" },
+      ...categories.map((c) => ({ id: c.id, label: c.name })),
+    ],
+    [categories],
+  );
+
+  const filtered = useMemo(
+    () => filterExpenses(items, filters, categories),
+    [items, filters, categories],
+  );
 
   const total = useMemo(
     () => filtered.reduce((acc, e) => acc + e.amount_minor, 0),
@@ -66,7 +74,7 @@ export default function Expenses() {
           <div className="flex flex-wrap items-center gap-2">
             <FilterDropdown
               value={filters.category}
-              options={CATEGORY_OPTIONS}
+              options={categoryOptions}
               onChange={(id) => setFilters({ ...filters, category: id })}
             />
             <FilterDropdown
@@ -157,7 +165,11 @@ interface Filters {
   payment: string;
 }
 
-function filterExpenses(items: Expense[], filters: Filters): Expense[] {
+function filterExpenses(
+  items: Expense[],
+  filters: Filters,
+  categories: { id: string; name: string }[],
+): Expense[] {
   const search = filters.search.trim().toLowerCase();
   const { start, end } = periodRange(filters.period);
 
@@ -170,7 +182,7 @@ function filterExpenses(items: Expense[], filters: Filters): Expense[] {
       if (start && d.isBefore(start)) return false;
       if (end && d.isAfter(end)) return false;
       if (search) {
-        const cat = CATEGORIES.find((c) => c.id === e.category_id);
+        const cat = categories.find((c) => c.id === e.category_id);
         const haystack = [
           e.note ?? "",
           cat?.name ?? "",
