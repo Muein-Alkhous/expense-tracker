@@ -35,14 +35,14 @@ export default function TopBar({ title, period = "This month", showPeriod = true
       </div>
 
       <div className="flex items-center gap-2">
-        <button
+        {/* <button
           aria-label="Search"
           className="rounded-control p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-        </button>
+        </button> */}
         <Button onClick={openAddExpense}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14M5 12h14" />

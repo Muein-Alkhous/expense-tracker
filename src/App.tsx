@@ -42,12 +42,7 @@ export default function App() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           title={pageTitle}
-          showPeriod={
-            currentPage === "dashboard" ||
-            currentPage === "expenses" ||
-            currentPage === "budgets" ||
-            currentPage === "reports"
-          }
+          showPeriod={currentPage === "dashboard"}
         />
         <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-950">
           {currentPage === "dashboard" && <Dashboard />}
