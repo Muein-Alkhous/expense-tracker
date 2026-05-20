@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import PeriodSelector from "@/components/PeriodSelector";
 import Button from "@/components/ui/Button";
 import { CategoryIcon } from "@/lib/categoryIcons";
+import FxMissingBanner from "@/components/FxMissingBanner";
+import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
 import { filterByPeriod, periodPrintLabel, type PeriodId } from "@/lib/period";
 import { sumCategoryBudgetsMinor, useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
@@ -63,6 +66,7 @@ export default function Budgets() {
   const totalLimit = useBudgets((s) => s.totalMonthlyMinor);
   const openNewBudget = useUi((s) => s.openNewBudget);
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const fxRates = useFxRates((s) => s.rates);
   const budgetAlerts = useSettings((s) => s.budgetAlerts);
 
   const [period, setPeriod] = useState<PeriodId>("this_month");
@@ -75,15 +79,19 @@ export default function Budgets() {
   const spentByCategory = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of monthExpenses) {
-      map.set(e.category_id, (map.get(e.category_id) ?? 0) + e.amount_minor);
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (!ok) continue;
+      map.set(e.category_id, (map.get(e.category_id) ?? 0) + amountMinor);
     }
     return map;
-  }, [monthExpenses]);
+  }, [monthExpenses, baseCurrency, fxRates]);
 
-  const totalSpent = useMemo(
-    () => monthExpenses.reduce((acc, e) => acc + e.amount_minor, 0),
-    [monthExpenses],
+  const monthSum = useMemo(
+    () => sumExpensesInBase(monthExpenses, baseCurrency, fxRates),
+    [monthExpenses, baseCurrency, fxRates],
   );
+  const totalSpent = monthSum.totalMinor;
+  const fxSkipped = monthSum.skippedCount;
 
   const allocatedMinor = useMemo(
     () => sumCategoryBudgetsMinor(budgetItems),
@@ -131,6 +139,7 @@ export default function Budgets() {
 
   return (
     <div className="space-y-6 p-8">
+      <FxMissingBanner count={fxSkipped} baseCurrency={baseCurrency} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
         <Button variant="ghost" onClick={() => openNewBudget()}>

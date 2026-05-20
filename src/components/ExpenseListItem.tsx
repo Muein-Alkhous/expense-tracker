@@ -1,7 +1,9 @@
 // Row used in the Expenses page list (flex layout, not a table row).
 
 import { formatDate } from "@/lib/date";
+import { amountInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
 import { getCategory } from "@/store/expenses";
 import type { Expense } from "@/types";
 
@@ -11,8 +13,10 @@ interface ExpenseListItemProps {
 }
 
 export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListItemProps) {
+  const fxRates = useFxRates((s) => s.rates);
   const category = getCategory(expense.category_id);
   const isForeign = expense.currency_code !== baseCurrency;
+  const converted = amountInBase(expense, baseCurrency, fxRates);
 
   return (
     <li className="grid grid-cols-12 items-center gap-4 border-t border-neutral-100 px-6 py-3 text-sm transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50">
@@ -32,10 +36,13 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
         <div className="font-medium text-neutral-900 dark:text-neutral-50">
           {formatMinor(expense.amount_minor, expense.currency_code)}
         </div>
-        {isForeign && (
+        {isForeign && converted.ok && (
           <div className="text-xs text-neutral-400">
-            ≈ {formatMinor(expense.amount_minor, baseCurrency)}
+            ≈ {formatMinor(converted.amountMinor, baseCurrency)}
           </div>
+        )}
+        {isForeign && !converted.ok && (
+          <div className="text-xs text-amber-500 dark:text-amber-400">No FX rate</div>
         )}
       </div>
     </li>

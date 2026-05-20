@@ -21,7 +21,9 @@ import { toMinor } from "@/lib/money";
 import { useSettings } from "@/store/settings";
 import type { PaymentMethod } from "@/types";
 
-const CURRENCIES = ["USD", "EUR", "TRY", "SYP"] as const;
+import { SUPPORTED_CURRENCIES } from "@/lib/currencies";
+
+const CURRENCIES = SUPPORTED_CURRENCIES;
 
 const fieldClass =
   "w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50 dark:placeholder:text-neutral-500";

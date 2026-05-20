@@ -2,7 +2,9 @@
 
 import dayjs from "dayjs";
 import { formatDate } from "@/lib/date";
+import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
 import { getCategory } from "@/store/expenses";
 import type { Expense } from "@/types";
 
@@ -36,9 +38,8 @@ export function printMonthlyStatement(
     (a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id),
   );
   const base = options.baseCurrency;
-  const inBase = sorted.filter((e) => e.currency_code === base);
-  const totalMinorBase = inBase.reduce((acc, e) => acc + e.amount_minor, 0);
-  const otherCurrencyCount = sorted.length - inBase.length;
+  const fxRates = useFxRates.getState().rates;
+  const { totalMinor, skippedCount } = sumExpensesInBase(sorted, base, fxRates);
 
   const rows = sorted
     .map((e) => {
@@ -50,25 +51,30 @@ export function printMonthlyStatement(
       );
       const dateStr = formatDate(e.date, "MMM D, YYYY");
       const amount = formatMinor(e.amount_minor, e.currency_code);
+      const converted = amountInBase(e, base, fxRates);
+      const baseCol =
+        e.currency_code === base
+          ? ""
+          : converted.ok
+            ? `<br/><span style="color:#666">≈ ${escapeHtml(formatMinor(converted.amountMinor, base))}</span>`
+            : `<br/><span style="color:#b45309">No FX rate</span>`;
       return `<tr>
         <td>${escapeHtml(dateStr)}</td>
         <td>${categoryName}</td>
         <td>${note}</td>
         <td>${method}</td>
-        <td class="num">${escapeHtml(amount)}</td>
+        <td class="num">${escapeHtml(amount)}${baseCol}</td>
       </tr>`;
     })
     .join("");
 
-  const totalFormatted = formatMinor(totalMinorBase, base);
+  const totalFormatted = formatMinor(totalMinor, base);
   const totalLine =
-    otherCurrencyCount > 0
+    skippedCount > 0
       ? `Total in ${escapeHtml(base)}: <strong>${escapeHtml(
           totalFormatted,
-        )}</strong> (${inBase.length} of ${sorted.length} expenses in ${escapeHtml(
-          base,
-        )}). Other rows list amounts in their own currency.`
-      : `Total: <strong>${escapeHtml(totalFormatted)}</strong> (${sorted.length} expense${
+        )}</strong> (${sorted.length - skippedCount} of ${sorted.length} converted; ${skippedCount} excluded — no rate).`
+      : `Total in ${escapeHtml(base)}: <strong>${escapeHtml(totalFormatted)}</strong> (${sorted.length} expense${
           sorted.length === 1 ? "" : "s"
         }).`;
 

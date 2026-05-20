@@ -4,11 +4,13 @@ import dayjs from "dayjs";
 import { useBudgets, type CategoryBudget } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
+import { useFxRates } from "@/store/fxRates";
 import { useSettings, type BackupRecord, type ThemeMode } from "@/store/settings";
 import type { Category, Expense } from "@/types";
+import type { FxRate } from "@/types/fx";
 import type { PageId } from "@/store/ui";
 
-const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 2;
 
 export interface AppBackupPayload {
   version: number;
@@ -19,6 +21,7 @@ export interface AppBackupPayload {
     totalMonthlyMinor: number;
     items: CategoryBudget[];
   };
+  fx_rates?: FxRate[];
   settings: {
     theme: ThemeMode;
     language: string;
@@ -53,6 +56,7 @@ export function buildBackupPayload(): AppBackupPayload {
       totalMonthlyMinor: useBudgets.getState().totalMonthlyMinor,
       items: useBudgets.getState().items,
     },
+    fx_rates: useFxRates.getState().rates,
     settings: {
       theme: s.theme,
       language: s.language,
@@ -146,6 +150,10 @@ export async function restoreBackupPayload(payload: AppBackupPayload): Promise<v
   useExpenses.getState().replaceAll(payload.expenses);
   useCategories.getState().replaceAll(payload.categories);
   useBudgets.getState().replaceAll(payload.budgets);
+
+  if (payload.fx_rates?.length) {
+    useFxRates.getState().replaceAll(payload.fx_rates);
+  }
 
   const s = payload.settings;
   const settings = useSettings.getState();

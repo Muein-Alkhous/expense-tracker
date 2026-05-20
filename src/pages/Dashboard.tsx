@@ -13,7 +13,11 @@ import KpiCard from "@/components/KpiCard";
 import ExpenseRow from "@/components/ExpenseRow";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { formatChartDate, formatDate, isThisWeek, toDateKey } from "@/lib/date";
+import FxMissingBanner from "@/components/FxMissingBanner";
+import { amountInBase, countMissingFx, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
+import type { FxRate } from "@/types/fx";
 import dayjs from "dayjs";
 import {
   filterByPeriod,
@@ -36,20 +40,26 @@ export default function Dashboard() {
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const period = useUi((s) => s.dashboardPeriod);
   const isDark = useDarkMode();
+  const fxRates = useFxRates((s) => s.rates);
 
   const stats = useMemo(() => {
     const monthExpenses = filterByPeriod(items, period);
     const weekExpenses = items.filter((e) => isThisWeek(e.date, weekStartDay));
 
-    const monthTotal = monthExpenses.reduce((acc, e) => acc + e.amount_minor, 0);
-    const weekTotal = weekExpenses.reduce((acc, e) => acc + e.amount_minor, 0);
-    const dailyAvg = monthExpenses.length
+    const monthSum = sumExpensesInBase(monthExpenses, baseCurrency, fxRates);
+    const weekSum = sumExpensesInBase(weekExpenses, baseCurrency, fxRates);
+    const monthTotal = monthSum.totalMinor;
+    const weekTotal = weekSum.totalMinor;
+    const fxSkipped = countMissingFx(monthExpenses, baseCurrency, fxRates);
+    const dailyAvg = monthSum.convertedCount
       ? Math.round(monthTotal / Math.max(uniqueDays(monthExpenses.map((e) => e.date)), 1))
       : 0;
 
     const byCategory = new Map<string, number>();
     for (const e of monthExpenses) {
-      byCategory.set(e.category_id, (byCategory.get(e.category_id) ?? 0) + e.amount_minor);
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (!ok) continue;
+      byCategory.set(e.category_id, (byCategory.get(e.category_id) ?? 0) + amountMinor);
     }
     const breakdown = [...byCategory.entries()]
       .map(([id, total]) => ({ id, total }))
@@ -61,20 +71,30 @@ export default function Dashboard() {
       ? Math.round((breakdown[0].total / Math.max(monthTotal, 1)) * 100)
       : 0;
 
-    return { monthExpenses, monthTotal, weekTotal, dailyAvg, breakdown, topCategory, topCategoryPct };
-  }, [items, categories, weekStartDay, period]);
+    return {
+      monthExpenses,
+      monthTotal,
+      weekTotal,
+      dailyAvg,
+      breakdown,
+      topCategory,
+      topCategoryPct,
+      fxSkipped,
+    };
+  }, [items, categories, weekStartDay, period, baseCurrency, fxRates]);
 
   const trend = useMemo(() => {
-    const buckets = buildDailyTrendForPeriod(items, period);
+    const buckets = buildDailyTrendForPeriod(items, period, baseCurrency, fxRates);
     const todayKey = dayjs().format("YYYY-MM-DD");
     return buckets.map((b) => ({
       ...b,
       label: b.date === todayKey ? "Today" : formatChartDate(b.date),
     }));
-  }, [items, period]);
+  }, [items, period, baseCurrency, fxRates]);
 
   return (
     <div className="space-y-6 p-8">
+      <FxMissingBanner count={stats.fxSkipped} baseCurrency={baseCurrency} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label={periodSpentLabel(period)}
@@ -201,7 +221,10 @@ export default function Dashboard() {
               if (!cat) return null;
               const spent = stats.monthExpenses
                 .filter((e) => e.category_id === b.categoryId)
-                .reduce((acc, e) => acc + e.amount_minor, 0);
+                .reduce((acc, e) => {
+                  const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+                  return ok ? acc + amountMinor : acc;
+                }, 0);
               const pct = Math.min(200, Math.round((spent / b.limitMinor) * 100));
               const state =
                 pct >= 100 ? "exceeded" : pct >= 80 ? "warning" : "ok";
@@ -273,11 +296,14 @@ function trendChartCaption(period: PeriodId): string {
 }
 
 function buildDailyTrendForPeriod(
-  items: { date: string; amount_minor: number }[],
+  items: { date: string; amount_minor: number; currency_code: string }[],
   period: PeriodId,
+  baseCurrency: string,
+  fxRates: FxRate[],
 ): TrendBucketRaw[] {
   const { start, end } = periodRange(period);
-  if (!start || !end) return buildDailyTrend(filterByPeriod(items, period), 30);
+  if (!start || !end)
+    return buildDailyTrend(filterByPeriod(items, period), 30, baseCurrency, fxRates);
 
   const buckets: TrendBucketRaw[] = [];
   let cursor = start;
@@ -290,12 +316,19 @@ function buildDailyTrendForPeriod(
   const index = new Map(buckets.map((b, i) => [b.date, i]));
   for (const item of periodItems) {
     const i = index.get(toDateKey(item.date));
-    if (i !== undefined) buckets[i].total += item.amount_minor;
+    if (i === undefined) continue;
+    const { amountMinor, ok } = amountInBase(item, baseCurrency, fxRates);
+    if (ok) buckets[i].total += amountMinor;
   }
   return buckets;
 }
 
-function buildDailyTrend(items: { date: string; amount_minor: number }[], days: number): TrendBucketRaw[] {
+function buildDailyTrend(
+  items: { date: string; amount_minor: number; currency_code: string }[],
+  days: number,
+  baseCurrency: string,
+  fxRates: FxRate[],
+): TrendBucketRaw[] {
   const buckets: TrendBucketRaw[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
@@ -305,7 +338,9 @@ function buildDailyTrend(items: { date: string; amount_minor: number }[], days: 
   const index = new Map(buckets.map((b, i) => [b.date, i]));
   for (const item of items) {
     const i = index.get(toDateKey(item.date));
-    if (i !== undefined) buckets[i].total += item.amount_minor;
+    if (i === undefined) continue;
+    const { amountMinor, ok } = amountInBase(item, baseCurrency, fxRates);
+    if (ok) buckets[i].total += amountMinor;
   }
   return buckets;
 }

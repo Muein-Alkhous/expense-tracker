@@ -6,15 +6,16 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toggle from "@/components/ui/Toggle";
 import { CategoryIcon } from "@/lib/categoryIcons";
+import { amountInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
+import { useSettings } from "@/store/settings";
 import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
   useCategories,
 } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
-
-import { useSettings } from "@/store/settings";
 
 interface CategoryDraft {
   name: string;
@@ -32,6 +33,7 @@ const EMPTY_DRAFT: CategoryDraft = {
 
 export default function Categories() {
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const fxRates = useFxRates((s) => s.rates);
   const categories = useCategories((s) => s.items);
   const updateCategory = useCategories((s) => s.updateCategory);
   const addCategory = useCategories((s) => s.addCategory);
@@ -70,11 +72,12 @@ export default function Categories() {
     for (const e of expenses) {
       const row = map.get(e.category_id) ?? { count: 0, total: 0 };
       row.count += 1;
-      row.total += e.amount_minor;
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (ok) row.total += amountMinor;
       map.set(e.category_id, row);
     }
     return map;
-  }, [expenses]);
+  }, [expenses, baseCurrency, fxRates]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

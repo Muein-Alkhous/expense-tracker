@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toggle from "@/components/ui/Toggle";
+import FxRatesPanel from "@/components/FxRatesPanel";
 import {
   buildBackupPayload,
   downloadBackupFile,
@@ -246,7 +247,7 @@ export default function Settings() {
         {section === "currency" && (
           <SettingsPanel
             title="Currency"
-            description="Base currency for totals and reports (FX conversion coming later)."
+            description="Multi-currency expenses with local FX conversion into your base currency."
           >
             <Field label="Base currency" hint="All dashboard totals use this currency.">
               <Select
@@ -255,10 +256,7 @@ export default function Settings() {
                 onChange={s.setBaseCurrency}
               />
             </Field>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Expenses can still be logged in other currencies. Conversion uses stored FX rates once
-              the backend is connected.
-            </p>
+            <FxRatesPanel />
           </SettingsPanel>
         )}
 

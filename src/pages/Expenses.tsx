@@ -6,7 +6,10 @@ import ExpenseListItem from "@/components/ExpenseListItem";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 import { formatDate } from "@/lib/date";
+import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
+import type { FxRate } from "@/types/fx";
 import { formatMinor } from "@/lib/money";
+import { useFxRates } from "@/store/fxRates";
 import dayjs from "dayjs";
 import type { Expense } from "@/types";
 import { PERIOD_OPTIONS, periodRange, type PeriodId } from "@/lib/period";
@@ -30,6 +33,7 @@ const DEFAULT_FILTERS = {
 
 export default function Expenses() {
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const fxRates = useFxRates((s) => s.rates);
   const items = useExpenses((s) => s.items);
   const categories = useCategories((s) => s.items);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -48,11 +52,14 @@ export default function Expenses() {
   );
 
   const total = useMemo(
-    () => filtered.reduce((acc, e) => acc + e.amount_minor, 0),
-    [filtered],
+    () => sumExpensesInBase(filtered, baseCurrency, fxRates).totalMinor,
+    [filtered, baseCurrency, fxRates],
   );
 
-  const groups = useMemo(() => groupByDay(filtered), [filtered]);
+  const groups = useMemo(
+    () => groupByDay(filtered, baseCurrency, fxRates),
+    [filtered, baseCurrency, fxRates],
+  );
 
   const isFiltered =
     filters.search !== DEFAULT_FILTERS.search ||
@@ -199,15 +206,17 @@ interface DayGroup {
   items: Expense[];
 }
 
-function groupByDay(items: Expense[]): DayGroup[] {
+function groupByDay(items: Expense[], baseCurrency: string, fxRates: FxRate[]): DayGroup[] {
   const map = new Map<string, DayGroup>();
   for (const item of items) {
+    const { amountMinor, ok } = amountInBase(item, baseCurrency, fxRates);
+    const add = ok ? amountMinor : 0;
     const group = map.get(item.date);
     if (group) {
       group.items.push(item);
-      group.total += item.amount_minor;
+      group.total += add;
     } else {
-      map.set(item.date, { date: item.date, total: item.amount_minor, items: [item] });
+      map.set(item.date, { date: item.date, total: add, items: [item] });
     }
   }
   return [...map.values()].sort((a, b) => (a.date < b.date ? 1 : -1));

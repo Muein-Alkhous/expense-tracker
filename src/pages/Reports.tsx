@@ -15,7 +15,9 @@ import {
   YAxis,
 } from "recharts";
 import Button from "@/components/ui/Button";
+import FxMissingBanner from "@/components/FxMissingBanner";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatChartDate, formatDate, toDateKey } from "@/lib/date";
 import {
   filterByPeriod,
@@ -31,6 +33,8 @@ import { CategoryIcon } from "@/lib/categoryIcons";
 import { useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses, getCategory } from "@/store/expenses";
+import { useFxRates } from "@/store/fxRates";
+import type { FxRate } from "@/types/fx";
 import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
 import dayjs from "dayjs";
@@ -44,6 +48,7 @@ export default function Reports() {
   const categories = useCategories((s) => s.items);
   const budgetItems = useBudgets((s) => s.items);
   const baseCurrency = useSettings((s) => s.baseCurrency);
+  const fxRates = useFxRates((s) => s.rates);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openExportCsv = useUi((s) => s.openExportCsv);
   const [trendRange, setTrendRange] = useState<TrendRange>("60");
@@ -60,19 +65,24 @@ export default function Reports() {
     return filterByRange(expenses, prev.start, prev.end);
   }, [expenses, period]);
 
-  const monthTotal = useMemo(
-    () => thisMonth.reduce((acc, e) => acc + e.amount_minor, 0),
-    [thisMonth],
+  const monthSum = useMemo(
+    () => sumExpensesInBase(thisMonth, baseCurrency, fxRates),
+    [thisMonth, baseCurrency, fxRates],
   );
+  const monthTotal = monthSum.totalMinor;
+  const fxSkipped = monthSum.skippedCount;
+
   const lastMonthTotal = useMemo(
-    () => lastMonth.reduce((acc, e) => acc + e.amount_minor, 0),
-    [lastMonth],
+    () => sumExpensesInBase(lastMonth, baseCurrency, fxRates).totalMinor,
+    [lastMonth, baseCurrency, fxRates],
   );
 
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of thisMonth) {
-      map.set(e.category_id, (map.get(e.category_id) ?? 0) + e.amount_minor);
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (!ok) continue;
+      map.set(e.category_id, (map.get(e.category_id) ?? 0) + amountMinor);
     }
     return [...map.entries()]
       .map(([id, total]) => {
@@ -86,13 +96,21 @@ export default function Reports() {
         };
       })
       .sort((a, b) => b.total - a.total);
-  }, [thisMonth, categories, monthTotal]);
+  }, [thisMonth, categories, monthTotal, baseCurrency, fxRates]);
 
   const insights = useMemo(() => {
     const cards: { tag?: string; tagTone?: "insight" | "alert"; text: ReactNode }[] = [];
 
-    const foodThis = thisMonth.filter((e) => e.category_id === "food").reduce((a, e) => a + e.amount_minor, 0);
-    const foodLast = lastMonth.filter((e) => e.category_id === "food").reduce((a, e) => a + e.amount_minor, 0);
+    const sumCat = (list: typeof thisMonth, catId: string) =>
+      list
+        .filter((e) => e.category_id === catId)
+        .reduce((a, e) => {
+          const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+          return ok ? a + amountMinor : a;
+        }, 0);
+
+    const foodThis = sumCat(thisMonth, "food");
+    const foodLast = sumCat(lastMonth, "food");
     if (foodLast > 0) {
       const change = Math.round(((foodThis - foodLast) / foodLast) * 100);
       if (change !== 0) {
@@ -111,9 +129,11 @@ export default function Reports() {
 
     const byDay = new Map<number, number[]>();
     for (const e of thisMonth) {
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (!ok) continue;
       const dow = dayjs(e.date).day();
       const list = byDay.get(dow) ?? [];
-      list.push(e.amount_minor);
+      list.push(amountMinor);
       byDay.set(dow, list);
     }
     let peakDay = 0;
@@ -140,7 +160,10 @@ export default function Reports() {
     for (const b of budgetItems) {
       const spent = thisMonth
         .filter((e) => e.category_id === b.categoryId)
-        .reduce((a, e) => a + e.amount_minor, 0);
+        .reduce((a, e) => {
+          const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+          return ok ? a + amountMinor : a;
+        }, 0);
       if (spent > b.limitMinor) {
         const cat = categories.find((c) => c.id === b.categoryId);
         cards.push({
@@ -169,17 +192,22 @@ export default function Reports() {
     }
 
     return cards.slice(0, 4);
-  }, [thisMonth, lastMonth, budgetItems, categories, byCategory, baseCurrency]);
+  }, [thisMonth, lastMonth, budgetItems, categories, byCategory, baseCurrency, fxRates]);
 
   const trendDays = trendRange === "30" ? 30 : trendRange === "60" ? 60 : 90;
-  const trendData = useMemo(() => buildDailyTrend(expenses, trendDays), [expenses, trendDays]);
+  const trendData = useMemo(
+    () => buildDailyTrend(expenses, trendDays, baseCurrency, fxRates),
+    [expenses, trendDays, baseCurrency, fxRates],
+  );
 
   const dowData = useMemo(() => {
     const sums = Array(7).fill(0);
     const counts = Array(7).fill(0);
     for (const e of thisMonth) {
+      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+      if (!ok) continue;
       const idx = (dayjs(e.date).day() + 6) % 7;
-      sums[idx] += e.amount_minor;
+      sums[idx] += amountMinor;
       counts[idx] += 1;
     }
     const avgs = sums.map((s, i) => (counts[i] ? Math.round(s / counts[i]) : 0));
@@ -189,11 +217,20 @@ export default function Reports() {
       amount: avgs[i],
       isPeak: i === peakIdx && avgs[i] > 0,
     }));
-  }, [thisMonth]);
+  }, [thisMonth, baseCurrency, fxRates]);
 
   const topTransactions = useMemo(
-    () => [...thisMonth].sort((a, b) => b.amount_minor - a.amount_minor).slice(0, 3),
-    [thisMonth],
+    () =>
+      [...thisMonth]
+        .map((e) => {
+          const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
+          return { e, baseMinor: ok ? amountMinor : -1 };
+        })
+        .filter((x) => x.baseMinor >= 0)
+        .sort((a, b) => b.baseMinor - a.baseMinor)
+        .slice(0, 3)
+        .map((x) => x.e),
+    [thisMonth, baseCurrency, fxRates],
   );
 
   const spendingChange =
@@ -218,6 +255,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6 p-8">
+      <FxMissingBanner count={fxSkipped} baseCurrency={baseCurrency} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
         <div className="flex items-center gap-2">
@@ -562,8 +600,10 @@ function CompareBar({
 }
 
 function buildDailyTrend(
-  items: { date: string; amount_minor: number }[],
+  items: { date: string; amount_minor: number; currency_code: string }[],
   days: number,
+  baseCurrency: string,
+  fxRates: FxRate[],
 ): { date: string; label: string; total: number }[] {
   const buckets: { date: string; label: string; total: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
@@ -578,7 +618,9 @@ function buildDailyTrend(
   const index = new Map(buckets.map((b, i) => [b.date, i]));
   for (const item of items) {
     const i = index.get(toDateKey(item.date));
-    if (i !== undefined) buckets[i].total += item.amount_minor;
+    if (i === undefined) continue;
+    const { amountMinor, ok } = amountInBase(item, baseCurrency, fxRates);
+    if (ok) buckets[i].total += amountMinor;
   }
   if (buckets.length > 0) {
     buckets[buckets.length - 1].label = "Today";

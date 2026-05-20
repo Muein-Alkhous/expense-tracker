@@ -7,6 +7,7 @@ import {
   applyTheme,
   subscribeSystemTheme,
 } from "@/lib/applySettings";
+import { useFxRates } from "@/store/fxRates";
 import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
 
@@ -34,6 +35,7 @@ export function useSettingsSync(): void {
   useEffect(() => {
     const applyOnHydrate = () => {
       const s = useSettings.getState();
+      useFxRates.getState().seedDefaultsIfEmpty();
       applyTheme(s.theme);
       applyAccentColor(s.accentColor);
       void applyLanguage(s.language);
