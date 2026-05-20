@@ -19,6 +19,7 @@ import { formatMinor } from "@/lib/money";
 import { useFxRates } from "@/store/fxRates";
 import type { FxRate } from "@/types/fx";
 import dayjs from "dayjs";
+import { activeExpenses } from "@/lib/expenseFilters";
 import {
   filterByPeriod,
   periodRange,
@@ -32,7 +33,8 @@ import { useBudgets } from "@/store/budgets";
 import { useSettings } from "@/store/settings";
 
 export default function Dashboard() {
-  const items = useExpenses((s) => s.items);
+  const rawItems = useExpenses((s) => s.items);
+  const items = useMemo(() => activeExpenses(rawItems), [rawItems]);
   const categories = useCategories((s) => s.items);
   const budgetItems = useBudgets((s) => s.items);
   const baseCurrency = useSettings((s) => s.baseCurrency);
@@ -198,6 +200,9 @@ export default function Dashboard() {
                 <th className="px-4 py-2 text-left font-medium">Note</th>
                 <th className="px-4 py-2 text-left font-medium">Method</th>
                 <th className="px-4 py-2 text-right font-medium">Amount</th>
+                <th className="px-2 py-2 text-right font-medium">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>

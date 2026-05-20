@@ -18,8 +18,39 @@ interface FxRatesState {
   fetchLatest: (baseCurrency: string) => Promise<{ added: number; skipped: string[] }>;
 }
 
-function withIds(rows: Omit<FxRate, "id">[]): FxRate[] {
-  return rows.map((r) => ({ ...r, id: crypto.randomUUID() }));
+function normalizeRate(row: Omit<FxRate, "id">): Omit<FxRate, "id"> | null {
+  const from = row.from_code.toUpperCase();
+  const to = row.to_code.toUpperCase();
+  const rate = Number(row.rate);
+  if (!from || !to || from === to || !Number.isFinite(rate) || rate <= 0) return null;
+  if (from < to) {
+    return { ...row, from_code: from, to_code: to, rate };
+  }
+  return { ...row, from_code: to, to_code: from, rate: 1 / rate };
+}
+
+function mergeRates(existing: FxRate[], incoming: Omit<FxRate, "id">[]): FxRate[] {
+  const merged = [...existing];
+  for (const row of incoming) {
+    const normalized = normalizeRate(row);
+    if (!normalized) continue;
+    const idx = merged.findIndex(
+      (r) =>
+        r.from_code === normalized.from_code &&
+        r.to_code === normalized.to_code &&
+        r.as_of_date === normalized.as_of_date,
+    );
+    if (idx >= 0) {
+      merged[idx] = { ...merged[idx], ...normalized };
+    } else {
+      merged.push({ ...normalized, id: crypto.randomUUID() });
+    }
+  }
+  return merged;
+}
+
+function normalizeStoredRates(rows: FxRate[]): FxRate[] {
+  return mergeRates([], rows.map(({ id: _id, ...rest }) => rest));
 }
 
 export const useFxRates = create<FxRatesState>()(
@@ -29,30 +60,40 @@ export const useFxRates = create<FxRatesState>()(
 
       addRate: (row) =>
         set((state) => ({
-          rates: [...state.rates, { ...row, id: crypto.randomUUID() }],
+          rates: mergeRates(state.rates, [row]),
         })),
 
       updateRate: (id, patch) =>
-        set((state) => ({
-          rates: state.rates.map((r) => (r.id === id ? { ...r, ...patch } : r)),
-        })),
+        set((state) => {
+          const target = state.rates.find((r) => r.id === id);
+          if (!target) return state;
+          const { id: _oldId, ...rest } = target;
+          const updated = { ...rest, ...patch };
+          return {
+            rates: mergeRates(
+              state.rates.filter((r) => r.id !== id),
+              [updated],
+            ),
+          };
+        }),
 
       removeRate: (id) =>
         set((state) => ({
           rates: state.rates.filter((r) => r.id !== id),
         })),
 
-      replaceAll: (rates) => set({ rates }),
+      replaceAll: (rates) => set({ rates: normalizeStoredRates(rates) }),
+
 
       importRates: (rows) =>
         set((state) => ({
-          rates: [...state.rates, ...withIds(rows)],
+          rates: mergeRates(state.rates, rows),
         })),
 
       seedDefaultsIfEmpty: () => {
         if (get().rates.length > 0) return;
         const asOf = toDateKey(new Date().toISOString());
-        set({ rates: withIds(buildSeedRates(asOf)) });
+        set({ rates: mergeRates([], buildSeedRates(asOf)) });
       },
 
       fetchLatest: async (baseCurrency) => {
@@ -64,13 +105,18 @@ export const useFxRates = create<FxRatesState>()(
             !fetched.some((r) => r.from_code === baseCurrency && r.to_code === c),
         );
         if (fetched.length > 0) {
-          set((state) => ({ rates: [...state.rates, ...withIds(fetched)] }));
+          set((state) => ({ rates: mergeRates(state.rates, fetched) }));
         }
         return { added: fetched.length, skipped };
       },
     }),
     {
       name: "expense-tracker-fx-rates",
+      version: 2,
+      migrate: (persisted) => {
+        const raw = (persisted as { rates?: FxRate[] } | undefined)?.rates ?? [];
+        return { rates: normalizeStoredRates(raw) };
+      },
       partialize: (state) => ({ rates: state.rates }),
     },
   ),

@@ -33,6 +33,10 @@ export default function FxRatesPanel() {
   );
 
   function handleAdd() {
+    if (from.toUpperCase() === to.toUpperCase()) {
+      setStatus("Choose two different currencies.");
+      return;
+    }
     const n = Number(rate);
     if (!Number.isFinite(n) || n <= 0) {
       setStatus("Enter a valid positive rate.");
@@ -44,7 +48,7 @@ export default function FxRatesPanel() {
       rate: n,
       as_of_date: asOf,
     });
-    setStatus("Rate added.");
+    setStatus("Bidirectional rate added.");
   }
 
   async function handleFetch() {
@@ -57,7 +61,7 @@ export default function FxRatesPanel() {
       } else {
         const skipNote =
           skipped.length > 0 ? ` (${skipped.join(", ")} not available from API)` : "";
-        setStatus(`Updated ${added} rate row(s) from ECB feed.${skipNote}`);
+        setStatus(`Updated ${added} bidirectional pair(s) from ECB feed.${skipNote}`);
       }
     } catch (e) {
       setStatus(e instanceof Error ? e.message : "Fetch failed.");
@@ -76,7 +80,7 @@ export default function FxRatesPanel() {
         return;
       }
       importRates(rows);
-      setStatus(`Imported ${rows.length} rate(s).`);
+      setStatus(`Imported ${rows.length} bidirectional rate row(s).`);
     };
     reader.readAsText(file);
   }
@@ -189,7 +193,10 @@ export default function FxRatesPanel() {
                 className="border-t border-neutral-100 dark:border-neutral-800"
               >
                 <td className="px-3 py-2 text-neutral-800 dark:text-neutral-200">
-                  {formatRatePair(r.from_code, r.to_code, r.rate)}
+                  <div className="font-medium">{r.from_code} ↔ {r.to_code}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {formatRatePair(r.from_code, r.to_code, r.rate)}
+                  </div>
                 </td>
                 <td className="px-3 py-2 text-neutral-500">{r.as_of_date}</td>
                 <td className="px-3 py-2 text-right">

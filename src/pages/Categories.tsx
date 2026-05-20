@@ -7,9 +7,11 @@ import Input from "@/components/ui/Input";
 import Toggle from "@/components/ui/Toggle";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { amountInBase } from "@/lib/expenseInBase";
+import { activeExpenses } from "@/lib/expenseFilters";
 import { formatMinor } from "@/lib/money";
 import { useFxRates } from "@/store/fxRates";
 import { useSettings } from "@/store/settings";
+import { useBudgets } from "@/store/budgets";
 import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
@@ -37,7 +39,9 @@ export default function Categories() {
   const categories = useCategories((s) => s.items);
   const updateCategory = useCategories((s) => s.updateCategory);
   const addCategory = useCategories((s) => s.addCategory);
+  const deleteCategory = useCategories((s) => s.deleteCategory);
   const toggleActive = useCategories((s) => s.toggleActive);
+  const removeBudget = useBudgets((s) => s.removeBudget);
   const expenses = useExpenses((s) => s.items);
 
   const [search, setSearch] = useState("");
@@ -69,7 +73,7 @@ export default function Categories() {
 
   const stats = useMemo(() => {
     const map = new Map<string, { count: number; total: number }>();
-    for (const e of expenses) {
+    for (const e of activeExpenses(expenses)) {
       const row = map.get(e.category_id) ?? { count: 0, total: 0 };
       row.count += 1;
       const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
@@ -135,6 +139,41 @@ export default function Categories() {
       icon: draft.icon,
       is_active: draft.is_active,
     });
+  }
+
+  function handleDeleteCategory() {
+    if (!selectedId || isCreating || !selected) return;
+    const hasActive = expenses.some(
+      (e) => !e.deleted_at && e.category_id === selectedId,
+    );
+    if (hasActive) {
+      window.alert(
+        `Cannot delete "${selected.name}" while expenses still use this category. Delete or move those expenses first.`,
+      );
+      return;
+    }
+    if (
+      !window.confirm(
+        `Delete category "${selected.name}"? Budgets linked to this category will be removed. This cannot be undone.`,
+      )
+    )
+      return;
+    if (!deleteCategory(selectedId)) return;
+    removeBudget(selectedId);
+    const next = useCategories.getState().items[0];
+    if (next) {
+      setIsCreating(false);
+      setSelectedId(next.id);
+      setDraft({
+        name: next.name,
+        color: next.color,
+        icon: next.icon,
+        is_active: next.is_active,
+      });
+    } else {
+      setSelectedId(null);
+      setDraft({ ...EMPTY_DRAFT });
+    }
   }
 
   const insightCategory = selected ?? (isCreating ? null : categories[0]);
@@ -275,10 +314,20 @@ export default function Categories() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button onClick={saveDraft} className="flex-1">
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button onClick={saveDraft} className="min-w-[10rem] flex-1">
                   {isCreating ? "Create Category" : "Save Changes"}
                 </Button>
+                {!isCreating && selectedId ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleDeleteCategory}
+                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/50 dark:hover:text-rose-300"
+                  >
+                    Delete category
+                  </Button>
+                ) : null}
                 <Button variant="ghost" onClick={cancelEdit}>
                   Cancel
                 </Button>

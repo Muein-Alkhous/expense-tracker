@@ -17,6 +17,7 @@ import {
 import Button from "@/components/ui/Button";
 import FxMissingBanner from "@/components/FxMissingBanner";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { activeExpenses } from "@/lib/expenseFilters";
 import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatChartDate, formatDate, toDateKey } from "@/lib/date";
 import {
@@ -44,7 +45,8 @@ type TrendRange = "all" | "60" | "30";
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export default function Reports() {
-  const expenses = useExpenses((s) => s.items);
+  const rawExpenses = useExpenses((s) => s.items);
+  const expenses = useMemo(() => activeExpenses(rawExpenses), [rawExpenses]);
   const categories = useCategories((s) => s.items);
   const budgetItems = useBudgets((s) => s.items);
   const baseCurrency = useSettings((s) => s.baseCurrency);

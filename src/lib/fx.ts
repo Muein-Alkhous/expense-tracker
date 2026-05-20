@@ -113,15 +113,10 @@ export function buildSeedRates(asOfDate: string): Omit<FxRate, "id">[] {
 
   const pairs: [string, string, number][] = [
     ["USD", "EUR", usdEur],
-    ["EUR", "USD", 1 / usdEur],
     ["USD", "GBP", usdGbp],
-    ["GBP", "USD", 1 / usdGbp],
     ["USD", "TRY", usdTry],
-    ["TRY", "USD", 1 / usdTry],
     ["USD", "SYP", usdSyp],
-    ["SYP", "USD", 1 / usdSyp],
     ["EUR", "GBP", usdGbp / usdEur],
-    ["GBP", "EUR", usdEur / usdGbp],
   ];
 
   return pairs.map(([from_code, to_code, rate]) => ({
@@ -155,12 +150,6 @@ export async function fetchRatesFromApi(
   for (const [to_code, rate] of Object.entries(data.rates)) {
     if (!Number.isFinite(rate) || rate <= 0) continue;
     out.push({ from_code: baseCurrency, to_code, rate, as_of_date });
-    out.push({
-      from_code: to_code,
-      to_code: baseCurrency,
-      rate: 1 / rate,
-      as_of_date,
-    });
   }
 
   return out;

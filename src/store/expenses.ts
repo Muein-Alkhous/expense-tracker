@@ -45,6 +45,7 @@ interface NewExpenseInput {
 interface ExpensesState {
   items: Expense[];
   addExpense: (input: NewExpenseInput) => void;
+  deleteExpense: (id: string) => void;
   replaceAll: (items: Expense[]) => void;
 }
 
@@ -65,6 +66,14 @@ export const useExpenses = create<ExpensesState>()(
             ...state.items,
           ],
         })),
+      deleteExpense: (id) => {
+        const now = new Date().toISOString();
+        set((state) => ({
+          items: state.items.map((e) =>
+            e.id === id ? { ...e, deleted_at: now, updated_at: now } : e,
+          ),
+        }));
+      },
       replaceAll: (items) => set({ items }),
     }),
     {

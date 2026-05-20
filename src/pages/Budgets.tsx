@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import FxMissingBanner from "@/components/FxMissingBanner";
 import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
+import { activeExpenses } from "@/lib/expenseFilters";
 import { formatMinor } from "@/lib/money";
 import { useFxRates } from "@/store/fxRates";
 import { filterByPeriod, periodPrintLabel, type PeriodId } from "@/lib/period";
@@ -60,7 +61,8 @@ function buildWeeklySparkline(
 }
 
 export default function Budgets() {
-  const expenses = useExpenses((s) => s.items);
+  const rawExpenses = useExpenses((s) => s.items);
+  const expenses = useMemo(() => activeExpenses(rawExpenses), [rawExpenses]);
   const categories = useCategories((s) => s.items);
   const budgetItems = useBudgets((s) => s.items);
   const totalLimit = useBudgets((s) => s.totalMonthlyMinor);

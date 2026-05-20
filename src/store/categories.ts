@@ -55,13 +55,14 @@ interface CategoriesState {
     patch: Partial<Pick<Category, "name" | "color" | "icon" | "is_active">>,
   ) => void;
   addCategory: (input: { name: string; color: string; icon: string }) => string;
+  deleteCategory: (id: string) => boolean;
   toggleActive: (id: string) => void;
   replaceAll: (items: Category[]) => void;
 }
 
 export const useCategories = create<CategoriesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
   items: seedCategories,
   updateCategory: (id, patch) =>
     set((state) => ({
@@ -87,6 +88,13 @@ export const useCategories = create<CategoriesState>()(
       ],
     }));
     return id;
+  },
+  deleteCategory: (id) => {
+    const { items } = get();
+    if (items.length <= 1) return false;
+    if (!items.some((c) => c.id === id)) return false;
+    set({ items: items.filter((c) => c.id !== id) });
+    return true;
   },
   toggleActive: (id) =>
     set((state) => ({
