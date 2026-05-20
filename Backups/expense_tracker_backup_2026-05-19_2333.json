@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "exported_at": "2026-05-19T20:33:21.331Z",
+  "expenses": [
+    {
+      "id": "78bd2598-19c6-4530-8be8-99724babe1fc",
+      "is_recurring": false,
+      "created_at": "2026-05-19T14:30:29.405Z",
+      "updated_at": "2026-05-19T14:30:29.405Z",
+      "amount_minor": 50000,
+      "currency_code": "USD",
+      "category_id": "other",
+      "date": "2026-05-19",
+      "payment_method": "cash"
+    },
+    {
+      "id": "ded04baf-3adf-4069-b39a-98dc56014ae7",
+      "is_recurring": false,
+      "created_at": "2026-05-19T14:30:19.757Z",
+      "updated_at": "2026-05-19T14:30:19.758Z",
+      "amount_minor": 5000,
+      "currency_code": "USD",
+      "category_id": "food",
+      "date": "2026-05-19",
+      "payment_method": "transfer"
+    },
+    {
+      "id": "1",
+      "amount_minor": 4250,
+      "currency_code": "USD",
+      "category_id": "food",
+      "date": "2026-05-19",
+      "note": "Sushi dinner",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "2",
+      "amount_minor": 1200,
+      "currency_code": "USD",
+      "category_id": "transport",
+      "date": "2026-05-19",
+      "note": "Gas station",
+      "payment_method": "cash",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "3",
+      "amount_minor": 11000,
+      "currency_code": "USD",
+      "category_id": "bills",
+      "date": "2026-05-18",
+      "note": "Internet fiber",
+      "payment_method": "bank",
+      "is_recurring": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "4",
+      "amount_minor": 8420,
+      "currency_code": "USD",
+      "category_id": "shopping",
+      "date": "2026-05-17",
+      "note": "New sneakers",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "5",
+      "amount_minor": 2200,
+      "currency_code": "USD",
+      "category_id": "entertainment",
+      "date": "2026-05-16",
+      "note": "Cinema",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "6",
+      "amount_minor": 1850,
+      "currency_code": "USD",
+      "category_id": "food",
+      "date": "2026-05-15",
+      "note": "Lunch at Joe's",
+      "payment_method": "cash",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "7",
+      "amount_minor": 3500,
+      "currency_code": "USD",
+      "category_id": "food",
+      "date": "2026-05-13",
+      "note": "Groceries",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "8",
+      "amount_minor": 2400,
+      "currency_code": "USD",
+      "category_id": "transport",
+      "date": "2026-05-12",
+      "note": "Uber",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "9",
+      "amount_minor": 6700,
+      "currency_code": "USD",
+      "category_id": "shopping",
+      "date": "2026-05-09",
+      "note": "Headphones",
+      "payment_method": "card",
+      "is_recurring": false,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "10",
+      "amount_minor": 1500,
+      "currency_code": "USD",
+      "category_id": "entertainment",
+      "date": "2026-05-07",
+      "note": "Netflix",
+      "payment_method": "card",
+      "is_recurring": true,
+      "created_at": "",
+      "updated_at": ""
+    }
+  ],
+  "categories": [
+    {
+      "id": "food",
+      "name": "Food",
+      "color": "#ef4444",
+      "icon": "utensils",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": "2026-05-19T14:23:47.114Z"
+    },
+    {
+      "id": "transport",
+      "name": "Transport",
+      "color": "#f97316",
+      "icon": "car",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "bills",
+      "name": "Bills",
+      "color": "#3b82f6",
+      "icon": "receipt",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "shopping",
+      "name": "Shopping",
+      "color": "#a855f7",
+      "icon": "shopping-bag",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "entertainment",
+      "name": "Entertainment",
+      "color": "#ec4899",
+      "icon": "film",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "health",
+      "name": "Health",
+      "color": "#22c55e",
+      "icon": "heart",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": "2026-05-19T14:24:43.011Z"
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "color": "#14b8a6",
+      "icon": "book",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "rent",
+      "name": "Rent",
+      "color": "#64748b",
+      "icon": "home",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "savings",
+      "name": "Savings",
+      "color": "#10b981",
+      "icon": "piggy-bank",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "color": "#737373",
+      "icon": "more-horizontal",
+      "is_active": true,
+      "created_at": "",
+      "updated_at": ""
+    }
+  ],
+  "budgets": {
+    "totalMonthlyMinor": 50000,
+    "items": [
+      {
+        "categoryId": "food",
+        "limitMinor": 10000
+      },
+      {
+        "categoryId": "transport",
+        "limitMinor": 6000
+      },
+      {
+        "categoryId": "bills",
+        "limitMinor": 12000
+      },
+      {
+        "categoryId": "entertainment",
+        "limitMinor": 3000
+      },
+      {
+        "categoryId": "shopping",
+        "limitMinor": 17000
+      }
+    ]
+  },
+  "settings": {
+    "theme": "dark",
+    "language": "en",
+    "baseCurrency": "USD",
+    "weekStartDay": 0,
+    "defaultView": "dashboard",
+    "quickAddParser": false,
+    "accentColor": "#6366f1",
+    "backupPath": "~/Documents/ExpenseTracker/Backups",
+    "autoBackup": true,
+    "backupFrequency": "daily",
+    "encryptBackups": false,
+    "budgetAlerts": true,
+    "weeklyDigest": false
+  }
+}
