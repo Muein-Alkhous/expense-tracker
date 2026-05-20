@@ -53,6 +53,7 @@ export default function Reports() {
   const fxRates = useFxRates((s) => s.rates);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openExportCsv = useUi((s) => s.openExportCsv);
+  const openEditExpense = useUi((s) => s.openEditExpense);
   const [trendRange, setTrendRange] = useState<TrendRange>("60");
   const [period, setPeriod] = useState<PeriodId>("this_month");
   const isDark = useDarkMode();
@@ -459,9 +460,22 @@ export default function Reports() {
                       {cat?.name} · {formatDate(e.date, "MMM D")}
                     </p>
                   </div>
-                  <span className="shrink-0 font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
-                    −{formatMinor(e.amount_minor, e.currency_code)}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Edit expense"
+                      onClick={() => openEditExpense(e.id)}
+                      className="rounded-control p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-accent dark:hover:bg-neutral-800 dark:hover:text-accent"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        <path d="m15 5 4 4" />
+                      </svg>
+                    </button>
+                    <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
+                      −{formatMinor(e.amount_minor, e.currency_code)}
+                    </span>
+                  </div>
                 </li>
               );
             })}

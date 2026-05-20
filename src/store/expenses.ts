@@ -11,6 +11,8 @@ export const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "cash", label: "Cash" },
   { id: "card", label: "Card" },
   { id: "transfer", label: "Transfer" },
+  { id: "bank", label: "Bank" },
+  { id: "other", label: "Other" },
 ];
 
 function daysAgo(n: number): string {
@@ -45,6 +47,7 @@ interface NewExpenseInput {
 interface ExpensesState {
   items: Expense[];
   addExpense: (input: NewExpenseInput) => void;
+  updateExpense: (id: string, input: NewExpenseInput) => void;
   deleteExpense: (id: string) => void;
   replaceAll: (items: Expense[]) => void;
 }
@@ -66,6 +69,26 @@ export const useExpenses = create<ExpensesState>()(
             ...state.items,
           ],
         })),
+      updateExpense: (id, input) => {
+        const now = new Date().toISOString();
+        set((state) => ({
+          items: state.items.map((e) =>
+            e.id === id
+              ? {
+                  ...e,
+                  amount_minor: input.amount_minor,
+                  currency_code: input.currency_code,
+                  category_id: input.category_id,
+                  date: input.date,
+                  note: input.note,
+                  payment_method: input.payment_method,
+                  tags: input.tags,
+                  updated_at: now,
+                }
+              : e,
+          ),
+        }));
+      },
       deleteExpense: (id) => {
         const now = new Date().toISOString();
         set((state) => ({

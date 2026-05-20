@@ -17,8 +17,11 @@ interface UiState {
   dashboardPeriod: PeriodId;
   setDashboardPeriod: (period: PeriodId) => void;
   addExpenseOpen: boolean;
+  /** When non-null, the add-expense modal is editing this expense ID. */
+  editingExpenseId: string | null;
   openAddExpense: () => void;
   closeAddExpense: () => void;
+  openEditExpense: (id: string) => void;
   newBudgetOpen: boolean;
   newBudgetCategoryId: string | null;
   openNewBudget: (categoryId?: string) => void;
@@ -34,8 +37,10 @@ export const useUi = create<UiState>((set) => ({
   dashboardPeriod: "this_month",
   setDashboardPeriod: (period) => set({ dashboardPeriod: period }),
   addExpenseOpen: false,
-  openAddExpense: () => set({ addExpenseOpen: true }),
-  closeAddExpense: () => set({ addExpenseOpen: false }),
+  editingExpenseId: null,
+  openAddExpense: () => set({ addExpenseOpen: true, editingExpenseId: null }),
+  closeAddExpense: () => set({ addExpenseOpen: false, editingExpenseId: null }),
+  openEditExpense: (id) => set({ addExpenseOpen: true, editingExpenseId: id }),
   newBudgetOpen: false,
   newBudgetCategoryId: null,
   openNewBudget: (categoryId) =>

@@ -17,7 +17,7 @@ import { useCategories } from "@/store/categories";
 import { useUi } from "@/store/ui";
 import { today, daysAgo } from "@/lib/date";
 import { parseQuickAddText } from "@/lib/quickAddParser";
-import { toMinor } from "@/lib/money";
+import { toMajor, toMinor } from "@/lib/money";
 import { useSettings } from "@/store/settings";
 import type { PaymentMethod } from "@/types";
 
@@ -30,16 +30,25 @@ const fieldClass =
 
 export default function AddExpenseModal() {
   const open = useUi((s) => s.addExpenseOpen);
+  const editingExpenseId = useUi((s) => s.editingExpenseId);
   const close = useUi((s) => s.closeAddExpense);
   const addExpense = useExpenses((s) => s.addExpense);
+  const updateExpense = useExpenses((s) => s.updateExpense);
   const quickAddParser = useSettings((s) => s.quickAddParser);
   const defaultCurrency = useSettings((s) => s.baseCurrency);
 
   const allCategories = useCategories((s) => s.items);
-  const categories = useMemo(
-    () => allCategories.filter((c) => c.is_active),
-    [allCategories],
-  );
+  const categories = useMemo(() => {
+    const active = allCategories.filter((c) => c.is_active);
+    if (!editingExpenseId) return active;
+    const exp = useExpenses.getState().items.find((e) => e.id === editingExpenseId);
+    if (!exp) return active;
+    const cur = allCategories.find((c) => c.id === exp.category_id);
+    if (cur && !cur.is_active && !active.some((c) => c.id === cur.id)) {
+      return [...active, cur];
+    }
+    return active;
+  }, [allCategories, editingExpenseId]);
 
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<string>("USD");
@@ -55,6 +64,29 @@ export default function AddExpenseModal() {
   useEffect(() => {
     if (!open) return;
     const active = useCategories.getState().items.filter((c) => c.is_active);
+
+    if (editingExpenseId) {
+      const exp = useExpenses.getState().items.find((e) => e.id === editingExpenseId);
+      if (!exp || exp.deleted_at) {
+        close();
+        return;
+      }
+      setAmount(String(toMajor(exp.amount_minor, exp.currency_code)));
+      setCurrency(exp.currency_code);
+      const allCats = useCategories.getState().items;
+      const catExists = allCats.some((c) => c.id === exp.category_id);
+      setCategoryId(catExists ? exp.category_id : (active[0]?.id ?? ""));
+      setDate(exp.date);
+      setNote(exp.note ?? "");
+      const pm = exp.payment_method ?? "cash";
+      const known = PAYMENT_METHODS.some((m) => m.id === pm);
+      setPaymentMethod(known ? pm : "other");
+      setTags(exp.tags ?? []);
+      setTagDraft("");
+      setTimeout(() => amountRef.current?.focus(), 50);
+      return;
+    }
+
     setAmount("");
     setCurrency(defaultCurrency);
     setCategoryId(active[0]?.id ?? "");
@@ -64,7 +96,7 @@ export default function AddExpenseModal() {
     setTags([]);
     setTagDraft("");
     setTimeout(() => amountRef.current?.focus(), 50);
-  }, [open, defaultCurrency]);
+  }, [open, editingExpenseId, defaultCurrency, close]);
 
   function applyQuickAdd(text: string) {
     if (!quickAddParser || !text.trim()) return;
@@ -109,7 +141,7 @@ export default function AddExpenseModal() {
       amountRef.current?.focus();
       return;
     }
-    addExpense({
+    const payload = {
       amount_minor: toMinor(value, currency),
       currency_code: currency,
       category_id: categoryId,
@@ -117,7 +149,13 @@ export default function AddExpenseModal() {
       note: note.trim() || undefined,
       payment_method: paymentMethod,
       tags: tags.length ? tags : undefined,
-    });
+    };
+
+    if (editingExpenseId) {
+      updateExpense(editingExpenseId, payload);
+    } else {
+      addExpense(payload);
+    }
     close();
   }
 
@@ -131,14 +169,14 @@ export default function AddExpenseModal() {
     <Modal
       open={open}
       onClose={close}
-      title="Add Expense"
+      title={editingExpenseId ? "Edit expense" : "Add Expense"}
       footer={
         <>
           <Button variant="ghost" onClick={close}>
             Cancel
           </Button>
           <Button onClick={() => handleSave()}>
-            Save Expense
+            {editingExpenseId ? "Save changes" : "Save Expense"}
             <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium">
               ENTER
             </span>
@@ -197,9 +235,11 @@ export default function AddExpenseModal() {
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          onBlur={(e) => applyQuickAdd(e.target.value)}
+          onBlur={(e) => {
+            if (!editingExpenseId) applyQuickAdd(e.target.value);
+          }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && quickAddParser) {
+            if (e.key === "Enter" && quickAddParser && !editingExpenseId) {
               applyQuickAdd(note);
             }
           }}
@@ -254,7 +294,7 @@ export default function AddExpenseModal() {
           />
         </div>
 
-        {quickAddParser && (
+        {quickAddParser && !editingExpenseId && (
           <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
             Tip: type &quot;50 food lunch&quot; in the note field, then press Enter or tab away
           </p>

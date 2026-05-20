@@ -5,6 +5,7 @@ import { amountInBase } from "@/lib/expenseInBase";
 import { formatMinor } from "@/lib/money";
 import { getCategory, useExpenses } from "@/store/expenses";
 import { useFxRates } from "@/store/fxRates";
+import { useUi } from "@/store/ui";
 import type { Expense } from "@/types";
 
 interface ExpenseListItemProps {
@@ -15,6 +16,7 @@ interface ExpenseListItemProps {
 export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListItemProps) {
   const fxRates = useFxRates((s) => s.rates);
   const deleteExpense = useExpenses((s) => s.deleteExpense);
+  const openEditExpense = useUi((s) => s.openEditExpense);
   const category = getCategory(expense.category_id);
   const isForeign = expense.currency_code !== baseCurrency;
   const converted = amountInBase(expense, baseCurrency, fxRates);
@@ -56,7 +58,18 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
           <div className="text-xs text-amber-500 dark:text-amber-400">No FX rate</div>
         )}
       </div>
-      <div className="col-span-1 flex justify-end">
+      <div className="col-span-1 flex items-center justify-end gap-1">
+        <button
+          type="button"
+          aria-label="Edit expense"
+          onClick={() => openEditExpense(expense.id)}
+          className="rounded-control p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-accent dark:hover:bg-neutral-800 dark:hover:text-accent"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+            <path d="m15 5 4 4" />
+          </svg>
+        </button>
         <button
           type="button"
           aria-label="Delete expense"
