@@ -38,6 +38,7 @@ const LANGUAGES = [
 const DEFAULT_VIEWS: { id: PageId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "expenses", label: "Expenses" },
+  { id: "trash", label: "Trash" },
   { id: "budgets", label: "Budgets" },
   { id: "reports", label: "Reports" },
 ];

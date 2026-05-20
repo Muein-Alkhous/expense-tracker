@@ -1,6 +1,9 @@
 // Expenses screen: searchable, filterable transaction list grouped by day.
 
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { deletedExpenses } from "@/lib/expenseFilters";
+import { useUi } from "@/store/ui";
 import FilterDropdown, { type FilterOption } from "@/components/FilterDropdown";
 import ExpenseListItem from "@/components/ExpenseListItem";
 import { useCategories } from "@/store/categories";
@@ -32,11 +35,15 @@ const DEFAULT_FILTERS = {
 };
 
 export default function Expenses() {
+  const { t } = useTranslation();
   const baseCurrency = useSettings((s) => s.baseCurrency);
   const fxRates = useFxRates((s) => s.rates);
   const items = useExpenses((s) => s.items);
   const categories = useCategories((s) => s.items);
+  const setCurrentPage = useUi((s) => s.setCurrentPage);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  const trashCount = useMemo(() => deletedExpenses(items).length, [items]);
 
   const categoryOptions: FilterOption[] = useMemo(
     () => [
@@ -97,6 +104,23 @@ export default function Expenses() {
                 Clear
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setCurrentPage("trash")}
+              className="inline-flex items-center gap-1.5 rounded-control border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+              {t("nav.trash")}
+              {trashCount > 0 && (
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums dark:bg-neutral-600">
+                  {trashCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 

@@ -6,6 +6,7 @@ import { create } from "zustand";
 export type PageId =
   | "dashboard"
   | "expenses"
+  | "trash"
   | "categories"
   | "budgets"
   | "reports"

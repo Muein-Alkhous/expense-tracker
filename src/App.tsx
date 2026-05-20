@@ -10,6 +10,7 @@ import NewBudgetModal from "@/components/NewBudgetModal";
 import ExportCsvModal from "@/components/ExportCsvModal";
 import Dashboard from "@/pages/Dashboard";
 import Expenses from "@/pages/Expenses";
+import Trash from "@/pages/Trash";
 import Categories from "@/pages/Categories";
 import Budgets from "@/pages/Budgets";
 import Reports from "@/pages/Reports";
@@ -47,6 +48,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-950">
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "expenses" && <Expenses />}
+          {currentPage === "trash" && <Trash />}
           {currentPage === "categories" && <Categories />}
           {currentPage === "budgets" && <Budgets />}
           {currentPage === "reports" && <Reports />}

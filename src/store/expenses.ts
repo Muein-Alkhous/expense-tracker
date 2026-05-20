@@ -48,7 +48,14 @@ interface ExpensesState {
   items: Expense[];
   addExpense: (input: NewExpenseInput) => void;
   updateExpense: (id: string, input: NewExpenseInput) => void;
+  /** Soft-delete: sets `deleted_at`. */
   deleteExpense: (id: string) => void;
+  /** Clear soft-delete so the expense appears in normal lists again. */
+  restoreExpense: (id: string) => void;
+  /** Remove a soft-deleted row permanently from storage. */
+  permanentDeleteExpense: (id: string) => void;
+  /** Permanently remove all soft-deleted expenses. */
+  emptyTrash: () => void;
   replaceAll: (items: Expense[]) => void;
 }
 
@@ -97,6 +104,22 @@ export const useExpenses = create<ExpensesState>()(
           ),
         }));
       },
+      restoreExpense: (id) => {
+        const now = new Date().toISOString();
+        set((state) => ({
+          items: state.items.map((e) =>
+            e.id === id ? { ...e, deleted_at: undefined, updated_at: now } : e,
+          ),
+        }));
+      },
+      permanentDeleteExpense: (id) =>
+        set((state) => ({
+          items: state.items.filter((e) => e.id !== id),
+        })),
+      emptyTrash: () =>
+        set((state) => ({
+          items: state.items.filter((e) => !e.deleted_at),
+        })),
       replaceAll: (items) => set({ items }),
     }),
     {

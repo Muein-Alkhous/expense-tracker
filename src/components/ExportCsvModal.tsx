@@ -1,6 +1,6 @@
 // Modal to configure and download an expenses CSV export.
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import {
@@ -14,6 +14,7 @@ import {
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
+import { activeExpenses } from "@/lib/expenseFilters";
 
 const PERIODS: { id: ExportPeriod; label: string }[] = [
   { id: "this_month", label: "This month" },
@@ -36,6 +37,7 @@ export default function ExportCsvModal() {
   const open = useUi((s) => s.exportCsvOpen);
   const close = useUi((s) => s.closeExportCsv);
   const expenses = useExpenses((s) => s.items);
+  const activeOnly = useMemo(() => activeExpenses(expenses), [expenses]);
   const categories = useCategories((s) => s.items);
 
   const [period, setPeriod] = useState<ExportPeriod>("this_month");
@@ -49,7 +51,7 @@ export default function ExportCsvModal() {
     setError(null);
   }, [open]);
 
-  const filteredCount = filterExpensesByPeriod(expenses, period).length;
+  const filteredCount = filterExpensesByPeriod(activeOnly, period).length;
 
   function toggleColumn(key: keyof ExportColumnFlags) {
     setColumns((prev) => {
@@ -68,7 +70,7 @@ export default function ExportCsvModal() {
       return;
     }
 
-    const filtered = filterExpensesByPeriod(expenses, period);
+    const filtered = filterExpensesByPeriod(activeOnly, period);
     if (filtered.length === 0) {
       setError("No expenses match this date range.");
       return;

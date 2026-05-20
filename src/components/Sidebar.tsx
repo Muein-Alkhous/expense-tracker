@@ -1,11 +1,13 @@
 // Persistent left sidebar with primary navigation and quick-add hint.
 
 import { useTranslation } from "react-i18next";
+import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 
 const navItems = [
   { id: "dashboard", labelKey: "nav.dashboard", icon: <DashboardIcon /> },
   { id: "expenses", labelKey: "nav.expenses", icon: <ListIcon /> },
+  { id: "trash", labelKey: "nav.trash", icon: <TrashIcon /> },
   { id: "categories", labelKey: "nav.categories", icon: <TagIcon /> },
   { id: "budgets", labelKey: "nav.budgets", icon: <ChartIcon /> },
   { id: "reports", labelKey: "nav.reports", icon: <ReportIcon /> },
@@ -20,6 +22,7 @@ interface SidebarProps {
 export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
   const { t } = useTranslation();
   const openAddExpense = useUi((s) => s.openAddExpense);
+  const deletedCount = useExpenses((s) => s.items.reduce((n, e) => n + (e.deleted_at ? 1 : 0), 0));
 
   return (
     <aside
@@ -58,7 +61,12 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
               }
             >
               <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
-              <span>{t(item.labelKey)}</span>
+              <span className="flex-1 text-left">{t(item.labelKey)}</span>
+              {item.id === "trash" && deletedCount > 0 && (
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">
+                  {deletedCount}
+                </span>
+              )}
             </button>
           );
         })}
@@ -99,6 +107,16 @@ function ListIcon() {
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
       <circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" />
+    </svg>
+  );
+}
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" />
     </svg>
   );
 }
