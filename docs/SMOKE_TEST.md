@@ -2,6 +2,18 @@
 
 Run after `npm run tauri build` on a clean profile or after deleting the app data DB.
 
+## Build verification (automated)
+
+| Check | Result | Date |
+|-------|--------|------|
+| `npm run tauri build` exit 0 | Pass | 2026-05-23 |
+| `.deb` bundle produced | Pass | 2026-05-23 |
+| `.AppImage` bundle produced | Pass | 2026-05-23 |
+
+Install locally: `sudo dpkg -i release-artifacts/*.deb` or `chmod +x release-artifacts/*.AppImage && ./release-artifacts/*.AppImage`
+
+## Interactive checklist
+
 | Area | Steps | Pass |
 |------|--------|------|
 | Add expense | Ctrl/Cmd+N, save | ☐ |
