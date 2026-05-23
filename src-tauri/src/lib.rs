@@ -8,6 +8,7 @@ mod insights;
 mod models;
 
 use db::AppDb;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -45,6 +46,12 @@ pub fn run() {
             commands::materialize_recurring_due,
             commands::import_backup,
             commands::save_backup_to_disk,
+            commands::list_backups,
+            commands::read_backup_file,
+            commands::get_ui_settings,
+            commands::set_ui_settings,
+            commands::pick_backup_folder,
+            commands::pick_backup_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -7,6 +7,8 @@ import {
   applyTheme,
   subscribeSystemTheme,
 } from "@/lib/applySettings";
+import { schedulePersistSettings } from "@/lib/settingsDb";
+import { isTauri } from "@/lib/tauriEnv";
 import { useFxRates } from "@/store/fxRates";
 import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
@@ -51,4 +53,11 @@ export function useSettingsSync(): void {
     const unsub = useSettings.persist.onFinishHydration(applyOnHydrate);
     return unsub;
   }, [setCurrentPage]);
+
+  useEffect(() => {
+    if (!isTauri()) return;
+    return useSettings.subscribe(() => {
+      schedulePersistSettings();
+    });
+  }, []);
 }

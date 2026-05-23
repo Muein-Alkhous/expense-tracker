@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "@/lib/api";
 import { persistBudgetsToDb } from "@/lib/dbBootstrap";
+import { SEED_BUDGET_ITEMS, SEED_TOTAL_MONTHLY_MINOR } from "@/lib/seedData";
 import { isTauri } from "@/lib/tauriEnv";
 
 export interface CategoryBudget {
@@ -21,14 +22,6 @@ interface BudgetsState {
   removeBudget: (categoryId: string) => void;
   replaceAll: (data: { totalMonthlyMinor: number; items: CategoryBudget[] }) => void;
 }
-
-const seedBudgets: CategoryBudget[] = [
-  { categoryId: "food", limitMinor: 10000 },
-  { categoryId: "transport", limitMinor: 6000 },
-  { categoryId: "bills", limitMinor: 12000 },
-  { categoryId: "entertainment", limitMinor: 3000 },
-  { categoryId: "shopping", limitMinor: 17000 },
-];
 
 export function sumCategoryBudgetsMinor(items: CategoryBudget[]): number {
   return items.reduce((acc, b) => acc + b.limitMinor, 0);
@@ -74,8 +67,8 @@ async function syncDb(get: () => BudgetsState): Promise<void> {
 }
 
 const storeImpl = (set: (partial: Partial<BudgetsState> | ((s: BudgetsState) => Partial<BudgetsState>)) => void, get: () => BudgetsState): BudgetsState => ({
-  totalMonthlyMinor: 50000,
-  items: isTauri() ? [] : seedBudgets,
+  totalMonthlyMinor: SEED_TOTAL_MONTHLY_MINOR,
+  items: isTauri() ? [] : SEED_BUDGET_ITEMS,
   hydrated: !isTauri(),
 
   loadFromDb: async () => {

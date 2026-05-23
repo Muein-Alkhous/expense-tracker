@@ -3,7 +3,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Expense {
     pub id: String,
     pub amount_minor: i64,
@@ -60,6 +59,7 @@ pub struct NewCategoryInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CategoryBudgetRow {
     pub category_id: String,
     pub limit_minor: i64,
@@ -122,7 +122,6 @@ pub struct NewRecurringRuleInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct AppBackupPayload {
     pub version: i32,
     pub exported_at: String,
@@ -143,4 +142,13 @@ pub struct DbCounts {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MaterializeRecurringResult {
     pub created: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupFileInfo {
+    pub name: String,
+    pub path: String,
+    pub size_bytes: u64,
+    pub modified_at: String,
+    pub encrypted: bool,
 }

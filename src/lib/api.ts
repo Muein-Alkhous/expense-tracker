@@ -42,6 +42,14 @@ export interface RecurringRule {
   deleted_at?: string | null;
 }
 
+export interface BackupFileInfo {
+  name: string;
+  path: string;
+  size_bytes: number;
+  modified_at: string;
+  encrypted: boolean;
+}
+
 export interface NewRecurringRuleInput {
   title: string;
   amount_minor: number;
@@ -95,6 +103,15 @@ export const api = {
   materializeRecurringDue: () =>
     call<{ created: number }>("materialize_recurring_due"),
   importBackup: (payload: AppBackupPayload) => call<void>("import_backup", { payload }),
-  saveBackupToDisk: (backupPath: string, json: string) =>
-    call<string>("save_backup_to_disk", { backupPath, json }),
+  saveBackupToDisk: (backupPath: string, content: string, fileExtension = "json") =>
+    call<string>("save_backup_to_disk", {
+      backupPath,
+      json: content,
+      fileExtension,
+    }),
+  listBackups: (backupPath: string) => call<BackupFileInfo[]>("list_backups", { backupPath }),
+  readBackupFile: (filePath: string) => call<string>("read_backup_file", { filePath }),
+  getUiSettings: () => call<Record<string, unknown> | null>("get_ui_settings"),
+  setUiSettings: (settings: Record<string, unknown>) =>
+    call<void>("set_ui_settings", { settings }),
 };

@@ -34,11 +34,18 @@ Opens the Vite dev server at `http://localhost:1420`. Data is stored in the brow
 
 ### Desktop app (SQLite)
 
-Install Linux system dependencies (Debian/Ubuntu example):
+Install Linux system dependencies (Debian/Ubuntu). Required for `npm run tauri dev` — without them Cargo fails with `glib-2.0` / `gobject-2.0` not found:
+
+```bash
+bash scripts/install-tauri-linux-deps.sh
+```
+
+Or manually:
 
 ```bash
 sudo apt update
-sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf pkg-config
+sudo apt install -y build-essential pkg-config libssl-dev libglib2.0-dev \
+  libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 ```
 
 Then:
@@ -62,15 +69,46 @@ npm run build          # frontend only
 npm run tauri build    # desktop installer (requires system deps above)
 ```
 
+Installers are written to:
+
+```text
+src-tauri/target/release/bundle/deb/*.deb
+src-tauri/target/release/bundle/appimage/*.AppImage
+```
+
+### Releasing
+
+1. Install system dependencies (see above).
+2. Bump version in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` if needed.
+3. Run `npm run tauri build`.
+4. Tag and publish (example):
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds Linux bundles on tag push. Attach artifacts to a GitHub Release manually or via `gh release create`.
+
+See [CHANGELOG.md](CHANGELOG.md) and [docs/SMOKE_TEST.md](docs/SMOKE_TEST.md).
+
+### App data locations
+
+| Platform | Path |
+|----------|------|
+| Linux | `~/.local/share/com.expensetracker.app/expense_tracker.db` |
+| Backups | Folder set in Settings → Backup (default `~/Documents/ExpenseTracker/Backups`) |
+
 ## Data model
 
 - **Expenses**, **categories**, **budgets**, and **FX rates** live in SQLite when using Tauri
 - **Soft delete** sets `deleted_at`; use the **Trash** screen to restore or permanently delete
-- **Settings** (theme, language, backup preferences) remain in local storage for now
-- **Manual backup** downloads JSON; in the desktop app, **Backup now** also writes to your configured backup folder when encryption is off
-- **Automatic backups** run on app start when enabled (daily / weekly / monthly)
+- **Settings** (theme, language, backup path, etc.) are stored in SQLite on desktop (`app_settings` table)
+- **Backup now** (desktop) writes JSON to your configured folder only — use **Choose folder** to pick the path
+- **Backups on disk** lists real files from that folder; **Restore** loads a selected backup
+- **Automatic backups** run on app start and every 6 hours while the app is open (skipped when encryption is enabled)
 - **Recurring rules** (Settings → Recurring) materialize due expenses into SQLite
 
 ## Status
 
-Phase 1 MVP persistence is implemented: SQLite-backed CRUD, trash/restore, localStorage migration, scheduled file backups, and recurring rule materialization in the Tauri build.
+v0.1.0 — Desktop MVP: SQLite persistence, trash/restore, backups, recurring rules, CSV export, multi-currency. Web-only `npm run dev` remains supported for UI work (localStorage).

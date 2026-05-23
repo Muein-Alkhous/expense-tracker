@@ -1,8 +1,15 @@
 // Load SQLite data on startup and migrate legacy localStorage once.
 
-import { buildBackupPayload, type AppBackupPayload } from "@/lib/backup";
+import {
+  buildBackupPayload,
+  restoreBackupPayload,
+  saveBackupToConfiguredFolder,
+  type AppBackupPayload,
+} from "@/lib/backup";
 import { api } from "@/lib/api";
+import { hydrateSettingsFromDb } from "@/lib/settingsDb";
 import { isTauri } from "@/lib/tauriEnv";
+import { buildSeedPayload } from "@/lib/seedData";
 import { useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
@@ -12,62 +19,23 @@ import type { CategoryBudget } from "@/store/budgets";
 import type { Category, Expense } from "@/types";
 import type { FxRate } from "@/types/fx";
 
-function buildSeedPayload(): AppBackupPayload {
-  const categories: Category[] = [
-    { id: "food", name: "Food", color: "#ef4444", icon: "utensils", is_active: true, created_at: "", updated_at: "" },
-    { id: "transport", name: "Transport", color: "#f97316", icon: "car", is_active: true, created_at: "", updated_at: "" },
-    { id: "bills", name: "Bills", color: "#3b82f6", icon: "receipt", is_active: true, created_at: "", updated_at: "" },
-    { id: "shopping", name: "Shopping", color: "#a855f7", icon: "shopping-bag", is_active: true, created_at: "", updated_at: "" },
-    { id: "entertainment", name: "Entertainment", color: "#ec4899", icon: "film", is_active: true, created_at: "", updated_at: "" },
-    { id: "health", name: "Health", color: "#22c55e", icon: "heart", is_active: true, created_at: "", updated_at: "" },
-    { id: "education", name: "Education", color: "#14b8a6", icon: "book", is_active: true, created_at: "", updated_at: "" },
-    { id: "rent", name: "Rent", color: "#64748b", icon: "home", is_active: true, created_at: "", updated_at: "" },
-    { id: "savings", name: "Savings", color: "#10b981", icon: "piggy-bank", is_active: true, created_at: "", updated_at: "" },
-    { id: "other", name: "Other", color: "#737373", icon: "more-horizontal", is_active: true, created_at: "", updated_at: "" },
-  ];
-
-  const daysAgo = (n: number) => {
-    const d = new Date();
-    d.setDate(d.getDate() - n);
-    return d.toISOString().slice(0, 10);
-  };
-
-  const expenses: Expense[] = [
-    { id: "1", amount_minor: 4250, currency_code: "USD", category_id: "food", date: daysAgo(0), note: "Sushi dinner", payment_method: "card", is_recurring: false, created_at: "", updated_at: "" },
-    { id: "2", amount_minor: 1200, currency_code: "USD", category_id: "transport", date: daysAgo(0), note: "Gas station", payment_method: "cash", is_recurring: false, created_at: "", updated_at: "" },
-    { id: "3", amount_minor: 11000, currency_code: "USD", category_id: "bills", date: daysAgo(1), note: "Internet fiber", payment_method: "bank", is_recurring: true, created_at: "", updated_at: "" },
-  ];
-
+function seedPayloadFromSettings(): AppBackupPayload {
   const s = useSettings.getState();
-  return {
-    version: 2,
-    exported_at: new Date().toISOString(),
-    expenses,
-    categories,
-    budgets: {
-      totalMonthlyMinor: 50000,
-      items: [
-        { categoryId: "food", limitMinor: 10000 },
-        { categoryId: "transport", limitMinor: 6000 },
-      ],
-    },
-    fx_rates: [],
-    settings: {
-      theme: s.theme,
-      language: s.language,
-      baseCurrency: s.baseCurrency,
-      weekStartDay: s.weekStartDay,
-      defaultView: s.defaultView,
-      quickAddParser: s.quickAddParser,
-      accentColor: s.accentColor,
-      backupPath: s.backupPath,
-      autoBackup: s.autoBackup,
-      backupFrequency: s.backupFrequency,
-      encryptBackups: s.encryptBackups,
-      budgetAlerts: s.budgetAlerts,
-      weeklyDigest: s.weeklyDigest,
-    },
-  };
+  return buildSeedPayload({
+    theme: s.theme,
+    language: s.language,
+    baseCurrency: s.baseCurrency,
+    weekStartDay: s.weekStartDay,
+    defaultView: s.defaultView,
+    quickAddParser: s.quickAddParser,
+    accentColor: s.accentColor,
+    backupPath: s.backupPath,
+    autoBackup: s.autoBackup,
+    backupFrequency: s.backupFrequency,
+    encryptBackups: s.encryptBackups,
+    budgetAlerts: s.budgetAlerts,
+    weeklyDigest: s.weeklyDigest,
+  });
 }
 
 const PERSIST_KEYS = [
@@ -139,6 +107,8 @@ function clearLegacyLocalStorage(): void {
 export async function bootstrapDatabase(): Promise<void> {
   if (!isTauri()) return;
 
+  await hydrateSettingsFromDb();
+
   let counts = await api.dbCounts();
   if (counts.expenses === 0 && counts.categories === 0) {
     const legacy = buildPayloadFromLocalStorage();
@@ -146,7 +116,7 @@ export async function bootstrapDatabase(): Promise<void> {
       await api.importBackup(legacy);
       clearLegacyLocalStorage();
     } else {
-      await api.importBackup(buildSeedPayload());
+      await api.importBackup(seedPayloadFromSettings());
     }
     counts = await api.dbCounts();
   }
@@ -161,6 +131,15 @@ export async function bootstrapDatabase(): Promise<void> {
   const materialized = await api.materializeRecurringDue();
   if (materialized.created > 0) {
     await useExpenses.getState().loadFromDb();
+  }
+}
+
+/** Replace all app data with ~3 months of demo categories and expenses. */
+export async function loadDemoData(): Promise<void> {
+  const payload = seedPayloadFromSettings();
+  await restoreBackupPayload(payload);
+  if (isTauri()) {
+    useFxRates.getState().seedDefaultsIfEmpty();
   }
 }
 
@@ -186,10 +165,10 @@ export async function saveAutoBackupIfDue(): Promise<string | null> {
         : now - last >= 30 * dayMs;
 
   if (last > 0 && !due) return null;
+  if (s.encryptBackups) return null;
 
   const payload = buildBackupPayload();
-  const json = JSON.stringify(payload, null, 2);
-  const path = await api.saveBackupToDisk(s.backupPath, json);
+  const path = await saveBackupToConfiguredFolder(s.backupPath, payload, false);
   s.setLastBackupAt(new Date().toISOString());
   return path;
 }

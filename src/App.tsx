@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "@/components/Sidebar";
+import { useAutoBackupInterval } from "@/hooks/useAutoBackupInterval";
 import { useDbBootstrap } from "@/hooks/useDbBootstrap";
 import { useSettingsSync } from "@/hooks/useSettingsSync";
 import TopBar from "@/components/TopBar";
@@ -21,6 +22,7 @@ import { useUi, type PageId } from "@/store/ui";
 export default function App() {
   const dbReady = useDbBootstrap();
   useSettingsSync();
+  useAutoBackupInterval();
   const { t } = useTranslation();
   const currentPage = useUi((s) => s.currentPage);
   const setCurrentPage = useUi((s) => s.setCurrentPage);

@@ -41,7 +41,7 @@ export interface AppBackupPayload {
   };
 }
 
-function formatSize(bytes: number): string {
+export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -77,11 +77,11 @@ export function buildBackupPayload(): AppBackupPayload {
   };
 }
 
-export function downloadBackupFile(
+export function serializeBackupPayload(
   payload: AppBackupPayload,
   encrypt: boolean,
   password?: string,
-): void {
+): { content: string; extension: string } {
   let content = JSON.stringify(payload, null, 2);
   let extension = "json";
 
@@ -97,25 +97,53 @@ export function downloadBackupFile(
     extension = "enc.json";
   }
 
-  const bytes = new TextEncoder().encode(content).length;
+  return { content, extension };
+}
+
+function backupFilename(extension: string): string {
+  const stamp = dayjs().format("YYYY-MM-DD_HHmm");
+  return `expense_tracker_backup_${stamp}.${extension}`;
+}
+
+function makeBackupRecord(content: string, extension: string, encrypted: boolean): BackupRecord {
+  const name = backupFilename(extension);
+  return {
+    id: crypto.randomUUID(),
+    name,
+    date: dayjs().format("MMM D, YYYY · h:mm A"),
+    size: formatSize(new TextEncoder().encode(content).length),
+    encrypted,
+  };
+}
+
+/** Browser / Vite dev: trigger download to the system Downloads folder. */
+export function downloadBackupFile(
+  payload: AppBackupPayload,
+  encrypt: boolean,
+  password?: string,
+): void {
+  const { content, extension } = serializeBackupPayload(payload, encrypt, password);
   const blob = new Blob([content], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const stamp = dayjs().format("YYYY-MM-DD_HHmm");
-  const filename = `expense_tracker_backup_${stamp}.${extension}`;
   link.href = url;
-  link.download = filename;
+  link.download = backupFilename(extension);
   link.click();
   URL.revokeObjectURL(url);
+  useSettings.getState().addBackupRecord(makeBackupRecord(content, extension, encrypt));
+}
 
-  const record: BackupRecord = {
-    id: crypto.randomUUID(),
-    name: filename,
-    date: dayjs().format("MMM D, YYYY · h:mm A"),
-    size: formatSize(bytes),
-    encrypted: encrypt,
-  };
-  useSettings.getState().addBackupRecord(record);
+/** Desktop app: write backup only to the configured folder (no browser download). */
+export async function saveBackupToConfiguredFolder(
+  backupPath: string,
+  payload: AppBackupPayload,
+  encrypt: boolean,
+  password?: string,
+): Promise<string> {
+  const { content, extension } = serializeBackupPayload(payload, encrypt, password);
+  const path = await api.saveBackupToDisk(backupPath, content, extension);
+  useSettings.getState().addBackupRecord(makeBackupRecord(content, extension, encrypt));
+  return path;
 }
 
 export function parseBackupFileContent(

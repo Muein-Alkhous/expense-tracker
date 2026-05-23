@@ -4,20 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "@/lib/api";
 import { isTauri } from "@/lib/tauriEnv";
+import { SEED_CATEGORIES } from "@/lib/seedData";
 import type { Category } from "@/types";
-
-const seedCategories: Category[] = [
-  { id: "food", name: "Food", color: "#ef4444", icon: "utensils", is_active: true, created_at: "", updated_at: "" },
-  { id: "transport", name: "Transport", color: "#f97316", icon: "car", is_active: true, created_at: "", updated_at: "" },
-  { id: "bills", name: "Bills", color: "#3b82f6", icon: "receipt", is_active: true, created_at: "", updated_at: "" },
-  { id: "shopping", name: "Shopping", color: "#a855f7", icon: "shopping-bag", is_active: true, created_at: "", updated_at: "" },
-  { id: "entertainment", name: "Entertainment", color: "#ec4899", icon: "film", is_active: true, created_at: "", updated_at: "" },
-  { id: "health", name: "Health", color: "#22c55e", icon: "heart", is_active: true, created_at: "", updated_at: "" },
-  { id: "education", name: "Education", color: "#14b8a6", icon: "book", is_active: true, created_at: "", updated_at: "" },
-  { id: "rent", name: "Rent", color: "#64748b", icon: "home", is_active: true, created_at: "", updated_at: "" },
-  { id: "savings", name: "Savings", color: "#10b981", icon: "piggy-bank", is_active: true, created_at: "", updated_at: "" },
-  { id: "other", name: "Other", color: "#737373", icon: "more-horizontal", is_active: true, created_at: "", updated_at: "" },
-];
 
 export const CATEGORY_COLORS = [
   "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6", "#3b82f6",
@@ -44,7 +32,7 @@ interface CategoriesState {
 }
 
 const storeImpl = (set: (partial: Partial<CategoriesState> | ((s: CategoriesState) => Partial<CategoriesState>)) => void, get: () => CategoriesState): CategoriesState => ({
-  items: isTauri() ? [] : seedCategories,
+  items: isTauri() ? [] : SEED_CATEGORIES,
   hydrated: !isTauri(),
 
   loadFromDb: async () => {

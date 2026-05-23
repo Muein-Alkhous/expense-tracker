@@ -5,7 +5,7 @@ use tauri::State;
 use crate::db::AppDb;
 use crate::error::AppResult;
 use crate::models::{
-    AppBackupPayload, BudgetsSnapshot, Category, DbCounts, Expense, FxRate,
+    AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, DbCounts, Expense, FxRate,
     MaterializeRecurringResult, NewCategoryInput, NewExpenseInput, NewFxRateInput,
     NewRecurringRuleInput, RecurringRule,
 };
@@ -144,6 +144,47 @@ pub fn save_backup_to_disk(
     db: State<'_, AppDb>,
     backup_path: String,
     json: String,
+    file_extension: Option<String>,
 ) -> AppResult<String> {
-    db.save_backup_file(&backup_path, &json)
+    let ext = file_extension.unwrap_or_else(|| "json".to_string());
+    db.save_backup_file(&backup_path, &json, &ext)
+}
+
+#[tauri::command]
+pub fn list_backups(db: State<'_, AppDb>, backup_path: String) -> AppResult<Vec<BackupFileInfo>> {
+    db.list_backups(&backup_path)
+}
+
+#[tauri::command]
+pub fn read_backup_file(db: State<'_, AppDb>, file_path: String) -> AppResult<String> {
+    db.read_backup_file(&file_path)
+}
+
+#[tauri::command]
+pub fn get_ui_settings(db: State<'_, AppDb>) -> AppResult<Option<serde_json::Value>> {
+    db.get_ui_settings()
+}
+
+#[tauri::command]
+pub fn set_ui_settings(db: State<'_, AppDb>, settings: serde_json::Value) -> AppResult<()> {
+    db.set_ui_settings(&settings)
+}
+
+#[tauri::command]
+pub fn pick_backup_folder(default_path: Option<String>) -> AppResult<Option<String>> {
+    let mut dialog = rfd::FileDialog::new().set_title("Choose backup folder");
+    if let Some(path) = default_path.filter(|p| !p.is_empty()) {
+        dialog = dialog.set_directory(path);
+    }
+    Ok(dialog.pick_folder().map(|p| p.to_string_lossy().to_string()))
+}
+
+#[tauri::command]
+pub fn pick_backup_file() -> AppResult<Option<String>> {
+    Ok(rfd::FileDialog::new()
+        .set_title("Choose backup file to restore")
+        .add_filter("JSON backup", &["json"])
+        .add_filter("Encrypted backup", &["enc.json"])
+        .pick_file()
+        .map(|p| p.to_string_lossy().to_string()))
 }

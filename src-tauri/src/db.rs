@@ -10,7 +10,8 @@ use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    AppBackupPayload, BudgetsSnapshot, Category, CategoryBudgetRow, DbCounts, Expense,
+    AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, CategoryBudgetRow, DbCounts,
+    Expense,
     FxRate, MaterializeRecurringResult, NewCategoryInput, NewExpenseInput, NewFxRateInput,
     NewRecurringRuleInput, RecurringRule,
 };
@@ -585,7 +586,7 @@ impl AppDb {
     pub fn import_backup(&self, payload: &AppBackupPayload) -> AppResult<()> {
         self.with_conn(|conn| {
             conn.execute_batch("BEGIN IMMEDIATE;")?;
-            let result = (|| {
+            let result: AppResult<()> = (|| {
                 conn.execute("DELETE FROM expenses", [])?;
                 conn.execute("DELETE FROM category_budgets", [])?;
                 conn.execute("DELETE FROM categories", [])?;
@@ -690,28 +691,106 @@ impl AppDb {
         Ok(true)
     }
 
-    pub fn save_backup_file(&self, dir: &str, json: &str) -> AppResult<String> {
+    pub fn save_backup_file(&self, dir: &str, content: &str, file_extension: &str) -> AppResult<String> {
         let path = resolve_backup_dir(dir)?;
         std::fs::create_dir_all(&path)?;
         let stamp = chrono::Utc::now().format("%Y-%m-%d_%H%M").to_string();
-        let filename = format!("expense_tracker_backup_{stamp}.json");
+        let ext = file_extension.trim_start_matches('.');
+        let filename = format!("expense_tracker_backup_{stamp}.{ext}");
         let file_path = path.join(&filename);
-        std::fs::write(&file_path, json)?;
+        std::fs::write(&file_path, content)?;
         Ok(file_path.to_string_lossy().to_string())
+    }
+
+    pub fn list_backups(&self, dir: &str) -> AppResult<Vec<BackupFileInfo>> {
+        let path = resolve_backup_dir(dir)?;
+        if !path.exists() {
+            return Ok(Vec::new());
+        }
+        let mut files: Vec<BackupFileInfo> = Vec::new();
+        for entry in std::fs::read_dir(&path)? {
+            let entry = entry?;
+            let meta = entry.metadata()?;
+            if !meta.is_file() {
+                continue;
+            }
+            let name = entry.file_name().to_string_lossy().to_string();
+            if !name.starts_with("expense_tracker_backup_") {
+                continue;
+            }
+            if !(name.ends_with(".json") || name.ends_with(".enc.json")) {
+                continue;
+            }
+            let modified_at = meta
+                .modified()
+                .ok()
+                .map(|t| {
+                    let dt: chrono::DateTime<chrono::Utc> = t.into();
+                    dt.format("%Y-%m-%d %H:%M").to_string()
+                })
+                .unwrap_or_else(|| "—".to_string());
+            files.push(BackupFileInfo {
+                encrypted: name.ends_with(".enc.json"),
+                name: name.clone(),
+                path: entry.path().to_string_lossy().to_string(),
+                size_bytes: meta.len(),
+                modified_at,
+            });
+        }
+        files.sort_by(|a, b| b.path.cmp(&a.path));
+        Ok(files)
+    }
+
+    pub fn read_backup_file(&self, file_path: &str) -> AppResult<String> {
+        let path = PathBuf::from(file_path);
+        if !path.is_file() {
+            return Err(AppError::Message("Backup file not found.".into()));
+        }
+        Ok(std::fs::read_to_string(path)?)
+    }
+
+    pub fn get_ui_settings(&self) -> AppResult<Option<serde_json::Value>> {
+        self.with_conn(|conn| {
+            let mut stmt = conn.prepare("SELECT value FROM app_settings WHERE key = 'ui_settings'")?;
+            let mut rows = stmt.query([])?;
+            if let Some(row) = rows.next()? {
+                let raw: String = row.get(0)?;
+                let value: serde_json::Value = serde_json::from_str(&raw)?;
+                return Ok(Some(value));
+            }
+            Ok(None)
+        })
+    }
+
+    pub fn set_ui_settings(&self, settings: &serde_json::Value) -> AppResult<()> {
+        let raw = serde_json::to_string(settings)?;
+        self.with_conn(|conn| {
+            conn.execute(
+                "INSERT INTO app_settings (key, value) VALUES ('ui_settings', ?1)
+                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                [raw],
+            )?;
+            Ok(())
+        })
     }
 }
 
 fn resolve_backup_dir(dir: &str) -> AppResult<PathBuf> {
-    let expanded = if dir.starts_with("~/") {
+    let trimmed = dir.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::Message("Backup path cannot be empty.".into()));
+    }
+    if trimmed == "~" {
         if let Ok(home) = std::env::var("HOME") {
-            PathBuf::from(home).join(&dir[2..])
-        } else {
-            PathBuf::from(dir)
+            return Ok(PathBuf::from(home));
         }
-    } else {
-        PathBuf::from(dir)
-    };
-    Ok(expanded)
+    }
+    if let Some(rest) = trimmed.strip_prefix("~/") {
+        if let Ok(home) = std::env::var("HOME") {
+            return Ok(PathBuf::from(home).join(rest));
+        }
+    }
+    Ok(PathBuf::from(trimmed))
 }
 
 fn normalize_fx_pair(from: &str, to: &str, rate: f64) -> (String, String, f64) {

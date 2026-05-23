@@ -1,6 +1,6 @@
 // Settings screen: general, appearance, currency, backup, notifications, about.
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
@@ -10,10 +10,15 @@ import FxRatesPanel from "@/components/FxRatesPanel";
 import {
   buildBackupPayload,
   downloadBackupFile,
+  formatSize,
   parseBackupFileContent,
   restoreBackupPayload,
+  saveBackupToConfiguredFolder,
 } from "@/lib/backup";
-import { api } from "@/lib/api";
+import { pickBackupFile, pickBackupFolder } from "@/lib/backupDialog";
+import { loadDemoData } from "@/lib/dbBootstrap";
+import { api, type BackupFileInfo } from "@/lib/api";
+import { schedulePersistSettings } from "@/lib/settingsDb";
 import { isTauri } from "@/lib/tauriEnv";
 import RecurringExpensesPanel from "@/components/RecurringExpensesPanel";
 import {
@@ -53,8 +58,29 @@ export default function Settings() {
   const { t } = useTranslation();
   const [section, setSection] = useState<SettingsSection>("general");
   const [status, setStatus] = useState<{ tone: "ok" | "error"; message: string } | null>(null);
+  const [diskBackups, setDiskBackups] = useState<BackupFileInfo[]>([]);
+  const [loadingBackups, setLoadingBackups] = useState(false);
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const s = useSettings();
+
+  const loadDiskBackups = useCallback(async () => {
+    if (!isTauri()) return;
+    setLoadingBackups(true);
+    try {
+      const list = await api.listBackups(s.backupPath);
+      setDiskBackups(list);
+    } catch {
+      setDiskBackups([]);
+    } finally {
+      setLoadingBackups(false);
+    }
+  }, [s.backupPath]);
+
+  useEffect(() => {
+    if (section === "backup" && isTauri()) {
+      void loadDiskBackups();
+    }
+  }, [section, loadDiskBackups]);
 
   function showStatus(tone: "ok" | "error", message: string) {
     setStatus({ tone, message });
@@ -70,17 +96,24 @@ export default function Settings() {
     }
     try {
       const payload = buildBackupPayload();
-      downloadBackupFile(payload, s.encryptBackups, password);
-      if (isTauri() && !s.encryptBackups) {
-        const json = JSON.stringify(payload, null, 2);
-        const path = await api.saveBackupToDisk(s.backupPath, json);
+      if (isTauri()) {
+        const path = await saveBackupToConfiguredFolder(
+          s.backupPath,
+          payload,
+          s.encryptBackups,
+          password,
+        );
         s.setLastBackupAt(new Date().toISOString());
+        schedulePersistSettings();
+        await loadDiskBackups();
         showStatus("ok", `${t("settings.backupSuccess")} Saved to ${path}`);
         return;
       }
+      downloadBackupFile(payload, s.encryptBackups, password);
       showStatus("ok", t("settings.backupSuccess"));
-    } catch {
-      showStatus("error", "Backup failed. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Backup failed. Please try again.";
+      showStatus("error", msg);
     }
   }
 
@@ -105,6 +138,51 @@ export default function Settings() {
       }
     };
     reader.readAsText(file);
+  }
+
+  async function handleRestoreFromPath(filePath: string, encrypted: boolean) {
+    try {
+      let password: string | undefined;
+      if (encrypted) {
+        password = window.prompt(t("settings.restorePassword")) ?? undefined;
+        if (!password) return;
+      }
+      if (!window.confirm(t("settings.restoreConfirm"))) return;
+
+      const raw = await api.readBackupFile(filePath);
+      const payload = parseBackupFileContent(raw, encrypted, password);
+      await restoreBackupPayload(payload);
+      showStatus("ok", t("settings.restoreSuccess"));
+    } catch (err) {
+      showStatus("error", err instanceof Error ? err.message : "Restore failed.");
+    }
+  }
+
+  async function handleChooseBackupFolder() {
+    try {
+      const folder = await pickBackupFolder(s.backupPath);
+      if (!folder) return;
+      s.setBackupPath(folder);
+      schedulePersistSettings();
+      await loadDiskBackups();
+    } catch (err) {
+      showStatus("error", err instanceof Error ? err.message : "Could not choose folder.");
+    }
+  }
+
+  async function handlePickRestoreFile() {
+    if (isTauri()) {
+      try {
+        const path = await pickBackupFile();
+        if (!path) return;
+        const encrypted = path.endsWith(".enc.json") || path.endsWith(".enc");
+        await handleRestoreFromPath(path, encrypted);
+      } catch (err) {
+        showStatus("error", err instanceof Error ? err.message : "Restore failed.");
+      }
+      return;
+    }
+    restoreInputRef.current?.click();
   }
 
   return (
@@ -279,22 +357,33 @@ export default function Settings() {
           >
             <div className="rounded-card border border-neutral-200 bg-neutral-50/50 p-5 space-y-5 dark:border-neutral-700 dark:bg-neutral-900/90">
               <Field label="Local backup path">
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Input
                     value={s.backupPath}
-                    onChange={(e) => s.setBackupPath(e.target.value)}
-                    className="flex-1"
+                    onChange={(e) => {
+                      s.setBackupPath(e.target.value);
+                      schedulePersistSettings();
+                    }}
+                    className="min-w-0 flex-1"
                   />
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    onClick={() => restoreInputRef.current?.click()}
-                  >
-                    Browse
+                  {isTauri() && (
+                    <Button variant="ghost" type="button" onClick={() => void handleChooseBackupFolder()}>
+                      Choose folder
+                    </Button>
+                  )}
+                  <Button variant="ghost" type="button" onClick={() => void handlePickRestoreFile()}>
+                    Restore file…
                   </Button>
                 </div>
               </Field>
-              <Row label="Automatic backups" hint="On app start, saves a JSON snapshot to your backup folder when due.">
+              <Row
+                label="Automatic backups"
+                hint={
+                  isTauri()
+                    ? "On app start and every 6 hours while open, saves a JSON snapshot to your backup folder when due (skipped when encryption is on)."
+                    : "On app start, saves a JSON snapshot to your backup folder when due."
+                }
+              >
                 <div className="flex flex-wrap items-center gap-3">
                   <Toggle checked={s.autoBackup} onChange={s.setAutoBackup} label="Auto backup" />
                   <select
@@ -326,13 +415,49 @@ export default function Settings() {
                 Backup now
               </Button>
               <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                Downloads a JSON file to your device. Use Browse to pick a backup file to restore.
+                {isTauri()
+                  ? "Saves a backup file to the folder above. Recent files are listed from that folder on disk."
+                  : "Downloads a JSON file to your browser’s Downloads folder. Use Restore file to pick a backup."}
               </p>
               <div>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                  Recent backups
+                  {isTauri() ? "Backups on disk" : "Recent backups"}
                 </h3>
-                {s.backupHistory.length === 0 ? (
+                {isTauri() ? (
+                  loadingBackups ? (
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Loading backups…</p>
+                  ) : diskBackups.length === 0 ? (
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                      No backup files in this folder yet. Click Backup now to create one.
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-neutral-200 rounded-control border border-neutral-200 bg-white dark:divide-neutral-700 dark:border-neutral-700 dark:bg-neutral-950">
+                      {diskBackups.map((b) => (
+                        <li
+                          key={b.path}
+                          className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-neutral-900 dark:text-neutral-100">
+                              {b.name}
+                            </p>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              {b.modified_at} · {formatSize(b.size_bytes)}
+                              {b.encrypted ? " · Encrypted" : ""}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleRestoreFromPath(b.path, b.encrypted)}
+                            className="shrink-0 text-xs font-medium text-accent hover:underline"
+                          >
+                            Restore
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                ) : s.backupHistory.length === 0 ? (
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
                     No backups yet. Click Backup now to create one.
                   </p>
@@ -352,10 +477,10 @@ export default function Settings() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => restoreInputRef.current?.click()}
+                          onClick={() => void handlePickRestoreFile()}
                           className="text-xs font-medium text-accent hover:underline"
                         >
-                          Restore from file…
+                          Restore file…
                         </button>
                       </li>
                     ))}
@@ -401,6 +526,35 @@ export default function Settings() {
                 A minimal personal finance app. Your data is stored locally in SQLite on this device.
                 No account required.
               </p>
+              <div className="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Sample data</p>
+                <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+                  Load 10 categories and about three months of demo expenses (replaces current data).
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="mt-3"
+                  onClick={async () => {
+                    if (
+                      !window.confirm(
+                        "Replace all expenses, categories, and budgets with demo data? This cannot be undone.",
+                      )
+                    ) {
+                      return;
+                    }
+                    try {
+                      await loadDemoData();
+                      showStatus("ok", "Demo data loaded — check Dashboard and Expenses.");
+                    } catch (err) {
+                      const msg = err instanceof Error ? err.message : "Could not load demo data.";
+                      showStatus("error", msg);
+                    }
+                  }}
+                >
+                  Load sample data
+                </Button>
+              </div>
               <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-500">
                 Built with Tauri, React, and Recharts.
               </p>

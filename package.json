@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:deps": "bash scripts/install-tauri-linux-deps.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

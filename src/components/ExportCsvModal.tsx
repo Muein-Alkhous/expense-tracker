@@ -33,6 +33,36 @@ const COLUMN_OPTIONS: { key: keyof ExportColumnFlags; label: string }[] = [
   { key: "tags", label: "Tags" },
 ];
 
+function periodButtonClass(selected: boolean): string {
+  const base =
+    "rounded-control border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900";
+  if (selected) {
+    return (
+      base +
+      " border-accent bg-accent/10 font-medium text-accent dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100"
+    );
+  }
+  return (
+    base +
+    " border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-200 dark:hover:border-neutral-500 dark:hover:bg-neutral-700"
+  );
+}
+
+function columnLabelClass(checked: boolean): string {
+  const base =
+    "flex cursor-pointer items-center gap-2 rounded-control border px-3 py-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-white dark:focus-within:ring-offset-neutral-900";
+  if (checked) {
+    return (
+      base +
+      " border-accent/60 bg-accent/5 text-neutral-900 dark:border-indigo-400/50 dark:bg-indigo-500/15 dark:text-neutral-100"
+    );
+  }
+  return (
+    base +
+    " border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-200 dark:hover:border-neutral-500 dark:hover:bg-neutral-700"
+  );
+}
+
 export default function ExportCsvModal() {
   const open = useUi((s) => s.exportCsvOpen);
   const close = useUi((s) => s.closeExportCsv);
@@ -95,7 +125,7 @@ export default function ExportCsvModal() {
           <Button onClick={() => handleExport()}>
             Download CSV
             {filteredCount > 0 && (
-              <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium">
+              <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-medium dark:bg-black/25">
                 {filteredCount}
               </span>
             )}
@@ -105,7 +135,7 @@ export default function ExportCsvModal() {
     >
       <form onSubmit={handleExport} className="space-y-5">
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-500">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             Date range
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -117,18 +147,13 @@ export default function ExportCsvModal() {
                   setPeriod(p.id);
                   setError(null);
                 }}
-                className={
-                  "rounded-control border px-3 py-2 text-left text-sm transition-colors " +
-                  (period === p.id
-                    ? "border-accent bg-accent/5 font-medium text-accent"
-                    : "border-neutral-200 text-neutral-700 hover:border-neutral-300")
-                }
+                className={periodButtonClass(period === p.id)}
               >
                 {p.label}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             {filteredCount === 0
               ? "No transactions in this range."
               : `${filteredCount} transaction${filteredCount === 1 ? "" : "s"} will be exported.`}
@@ -136,29 +161,26 @@ export default function ExportCsvModal() {
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-500">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             Columns
           </p>
           <div className="grid grid-cols-2 gap-2">
             {COLUMN_OPTIONS.map(({ key, label }) => (
-              <label
-                key={key}
-                className="flex cursor-pointer items-center gap-2 rounded-control border border-neutral-200 px-3 py-2 text-sm hover:bg-neutral-50"
-              >
+              <label key={key} className={columnLabelClass(columns[key])}>
                 <input
                   type="checkbox"
                   checked={columns[key]}
                   onChange={() => toggleColumn(key)}
-                  className="h-4 w-4 rounded border-neutral-300 text-accent focus:ring-accent"
+                  className="h-4 w-4 rounded border-neutral-300 text-accent focus:ring-accent dark:border-neutral-500 dark:bg-neutral-900 dark:checked:border-indigo-400 dark:checked:bg-indigo-500"
                 />
-                {label}
+                <span className="select-none">{label}</span>
               </label>
             ))}
           </div>
         </div>
 
         {error && (
-          <p className="text-sm text-rose-600" role="alert">
+          <p className="text-sm text-rose-600 dark:text-rose-400" role="alert">
             {error}
           </p>
         )}
