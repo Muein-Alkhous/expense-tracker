@@ -13,6 +13,9 @@ import {
   parseBackupFileContent,
   restoreBackupPayload,
 } from "@/lib/backup";
+import { api } from "@/lib/api";
+import { isTauri } from "@/lib/tauriEnv";
+import RecurringExpensesPanel from "@/components/RecurringExpensesPanel";
 import {
   ACCENT_SWATCHES,
   useSettings,
@@ -26,6 +29,7 @@ const SECTIONS: { id: SettingsSection; label: string }[] = [
   { id: "appearance", label: "Appearance" },
   { id: "currency", label: "Currency" },
   { id: "backup", label: "Backup & Restore" },
+  { id: "recurring", label: "Recurring" },
   { id: "notifications", label: "Notifications" },
   { id: "about", label: "About" },
 ];
@@ -57,7 +61,7 @@ export default function Settings() {
     window.setTimeout(() => setStatus(null), 5000);
   }
 
-  function handleBackupNow() {
+  async function handleBackupNow() {
     let password: string | undefined;
     if (s.encryptBackups) {
       const entered = window.prompt(t("settings.backupEncrypted"));
@@ -67,6 +71,13 @@ export default function Settings() {
     try {
       const payload = buildBackupPayload();
       downloadBackupFile(payload, s.encryptBackups, password);
+      if (isTauri() && !s.encryptBackups) {
+        const json = JSON.stringify(payload, null, 2);
+        const path = await api.saveBackupToDisk(s.backupPath, json);
+        s.setLastBackupAt(new Date().toISOString());
+        showStatus("ok", `${t("settings.backupSuccess")} Saved to ${path}`);
+        return;
+      }
       showStatus("ok", t("settings.backupSuccess"));
     } catch {
       showStatus("error", "Backup failed. Please try again.");
@@ -283,7 +294,7 @@ export default function Settings() {
                   </Button>
                 </div>
               </Field>
-              <Row label="Automatic backups" hint="Save a snapshot on a schedule.">
+              <Row label="Automatic backups" hint="On app start, saves a JSON snapshot to your backup folder when due.">
                 <div className="flex flex-wrap items-center gap-3">
                   <Toggle checked={s.autoBackup} onChange={s.setAutoBackup} label="Auto backup" />
                   <select
@@ -355,6 +366,15 @@ export default function Settings() {
           </SettingsPanel>
         )}
 
+        {section === "recurring" && (
+          <SettingsPanel
+            title="Recurring expenses"
+            description="Rules that materialize into expenses on a schedule (daily, weekly, or monthly)."
+          >
+            <RecurringExpensesPanel />
+          </SettingsPanel>
+        )}
+
         {section === "notifications" && (
           <SettingsPanel title="Notifications" description="Alerts and digests (stored locally).">
             <Row label="Budget alerts" hint="Show warnings on the Budgets page when limits are exceeded.">
@@ -378,8 +398,8 @@ export default function Settings() {
               <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Expense Tracker</p>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Version 0.1.0 · Local-first</p>
               <p className="mt-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
-                A minimal personal finance app. Data is stored on your device with SQLite (backend
-                in progress). No account required.
+                A minimal personal finance app. Your data is stored locally in SQLite on this device.
+                No account required.
               </p>
               <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-500">
                 Built with Tauri, React, and Recharts.

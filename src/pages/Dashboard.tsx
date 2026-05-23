@@ -106,7 +106,7 @@ export default function Dashboard() {
         <KpiCard
           label="Spent this week"
           value={formatMinor(stats.weekTotal, baseCurrency)}
-          hint={`Avg ${formatMinor(stats.dailyAvg, baseCurrency)} / day`}
+          
         />
         <KpiCard
           label="Average per day"

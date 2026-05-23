@@ -1,6 +1,8 @@
 // Full-app backup and restore (JSON download / file upload).
 
 import dayjs from "dayjs";
+import { api } from "@/lib/api";
+import { isTauri } from "@/lib/tauriEnv";
 import { useBudgets, type CategoryBudget } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
@@ -147,12 +149,21 @@ export function parseBackupFileContent(
 }
 
 export async function restoreBackupPayload(payload: AppBackupPayload): Promise<void> {
-  useExpenses.getState().replaceAll(payload.expenses);
-  useCategories.getState().replaceAll(payload.categories);
-  useBudgets.getState().replaceAll(payload.budgets);
-
-  if (payload.fx_rates?.length) {
-    useFxRates.getState().replaceAll(payload.fx_rates);
+  if (isTauri()) {
+    await api.importBackup(payload);
+    await Promise.all([
+      useExpenses.getState().loadFromDb(),
+      useCategories.getState().loadFromDb(),
+      useBudgets.getState().loadFromDb(),
+      useFxRates.getState().loadFromDb(),
+    ]);
+  } else {
+    useExpenses.getState().replaceAll(payload.expenses);
+    useCategories.getState().replaceAll(payload.categories);
+    useBudgets.getState().replaceAll(payload.budgets);
+    if (payload.fx_rates?.length) {
+      useFxRates.getState().replaceAll(payload.fx_rates);
+    }
   }
 
   const s = payload.settings;

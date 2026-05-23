@@ -2,13 +2,22 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { api } from "@/lib/api";
 import { toDateKey } from "@/lib/date";
 import { SUPPORTED_CURRENCIES } from "@/lib/currencies";
 import { buildSeedRates, fetchRatesFromApi } from "@/lib/fx";
+import { isTauri } from "@/lib/tauriEnv";
 import type { FxRate } from "@/types/fx";
+
+async function syncFxToDb(rates: FxRate[]): Promise<void> {
+  if (!isTauri()) return;
+  await api.replaceFxRates(rates);
+}
 
 interface FxRatesState {
   rates: FxRate[];
+  hydrated: boolean;
+  loadFromDb: () => Promise<void>;
   addRate: (row: Omit<FxRate, "id">) => void;
   updateRate: (id: string, patch: Partial<Pick<FxRate, "from_code" | "to_code" | "rate" | "as_of_date">>) => void;
   removeRate: (id: string) => void;
@@ -53,50 +62,68 @@ function normalizeStoredRates(rows: FxRate[]): FxRate[] {
   return mergeRates([], rows.map(({ id: _id, ...rest }) => rest));
 }
 
-export const useFxRates = create<FxRatesState>()(
-  persist(
-    (set, get) => ({
-      rates: [],
+const storeImpl = (set: (partial: Partial<FxRatesState> | ((s: FxRatesState) => Partial<FxRatesState>)) => void, get: () => FxRatesState): FxRatesState => ({
+  rates: [],
+  hydrated: !isTauri(),
 
-      addRate: (row) =>
-        set((state) => ({
-          rates: mergeRates(state.rates, [row]),
-        })),
+  loadFromDb: async () => {
+    if (!isTauri()) {
+      set(() => ({ hydrated: true }));
+      return;
+    }
+    const rates = await api.listFxRates();
+    set(() => ({ rates, hydrated: true }));
+  },
 
-      updateRate: (id, patch) =>
-        set((state) => {
-          const target = state.rates.find((r) => r.id === id);
-          if (!target) return state;
-          const { id: _oldId, ...rest } = target;
-          const updated = { ...rest, ...patch };
-          return {
-            rates: mergeRates(
-              state.rates.filter((r) => r.id !== id),
-              [updated],
-            ),
-          };
-        }),
-
-      removeRate: (id) =>
-        set((state) => ({
-          rates: state.rates.filter((r) => r.id !== id),
-        })),
-
-      replaceAll: (rates) => set({ rates: normalizeStoredRates(rates) }),
-
-
-      importRates: (rows) =>
-        set((state) => ({
-          rates: mergeRates(state.rates, rows),
-        })),
-
-      seedDefaultsIfEmpty: () => {
-        if (get().rates.length > 0) return;
-        const asOf = toDateKey(new Date().toISOString());
-        set({ rates: mergeRates([], buildSeedRates(asOf)) });
+  addRate: (row) => {
+        const rates = mergeRates(get().rates, [row]);
+        set({ rates });
+        void syncFxToDb(rates);
       },
 
-      fetchLatest: async (baseCurrency) => {
+  updateRate: (id, patch) => {
+        const state = get();
+        const target = state.rates.find((r) => r.id === id);
+        if (!target) return;
+        const { id: _oldId, ...rest } = target;
+        const updated = { ...rest, ...patch };
+        const rates = mergeRates(
+          state.rates.filter((r) => r.id !== id),
+          [updated],
+        );
+        set({ rates });
+        void syncFxToDb(rates);
+      },
+
+  removeRate: (id) => {
+        if (isTauri()) void api.removeFxRate(id);
+        const rates = get().rates.filter((r) => r.id !== id);
+        set({ rates });
+        void syncFxToDb(rates);
+      },
+
+  replaceAll: (rates) => {
+        const normalized = normalizeStoredRates(rates);
+        set({ rates: normalized });
+        void syncFxToDb(normalized);
+      },
+
+
+  importRates: (rows) => {
+        const rates = mergeRates(get().rates, rows);
+        set({ rates });
+        void syncFxToDb(rates);
+      },
+
+  seedDefaultsIfEmpty: () => {
+        if (get().rates.length > 0) return;
+        const asOf = toDateKey(new Date().toISOString());
+        const rates = mergeRates([], buildSeedRates(asOf));
+        set({ rates });
+        void syncFxToDb(rates);
+      },
+
+  fetchLatest: async (baseCurrency) => {
         const targets = [...SUPPORTED_CURRENCIES];
         const fetched = await fetchRatesFromApi(baseCurrency, targets);
         const skipped = targets.filter(
@@ -105,19 +132,24 @@ export const useFxRates = create<FxRatesState>()(
             !fetched.some((r) => r.from_code === baseCurrency && r.to_code === c),
         );
         if (fetched.length > 0) {
-          set((state) => ({ rates: mergeRates(state.rates, fetched) }));
+          const rates = mergeRates(get().rates, fetched);
+          set({ rates });
+          await syncFxToDb(rates);
         }
         return { added: fetched.length, skipped };
       },
-    }),
-    {
-      name: "expense-tracker-fx-rates",
-      version: 2,
-      migrate: (persisted) => {
-        const raw = (persisted as { rates?: FxRate[] } | undefined)?.rates ?? [];
-        return { rates: normalizeStoredRates(raw) };
-      },
-      partialize: (state) => ({ rates: state.rates }),
-    },
-  ),
-);
+});
+
+export const useFxRates = isTauri()
+  ? create<FxRatesState>()(storeImpl)
+  : create<FxRatesState>()(
+      persist(storeImpl, {
+        name: "expense-tracker-fx-rates",
+        version: 2,
+        migrate: (persisted) => {
+          const raw = (persisted as { rates?: FxRate[] } | undefined)?.rates ?? [];
+          return { rates: normalizeStoredRates(raw) };
+        },
+        partialize: (state) => ({ rates: state.rates }),
+      }),
+    );

@@ -1,8 +1,10 @@
-// Budgets store: per-category limits and overall monthly cap (in-memory until SQLite).
-// Category budgets must sum to at most totalMonthlyMinor (master cap).
+// Budgets store: per-category limits and overall monthly cap.
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { api } from "@/lib/api";
+import { persistBudgetsToDb } from "@/lib/dbBootstrap";
+import { isTauri } from "@/lib/tauriEnv";
 
 export interface CategoryBudget {
   categoryId: string;
@@ -12,6 +14,8 @@ export interface CategoryBudget {
 interface BudgetsState {
   totalMonthlyMinor: number;
   items: CategoryBudget[];
+  hydrated: boolean;
+  loadFromDb: () => Promise<void>;
   setTotalMonthly: (limitMinor: number) => boolean;
   setBudget: (categoryId: string, limitMinor: number) => boolean;
   removeBudget: (categoryId: string) => void;
@@ -30,7 +34,6 @@ export function sumCategoryBudgetsMinor(items: CategoryBudget[]): number {
   return items.reduce((acc, b) => acc + b.limitMinor, 0);
 }
 
-/** Sum of category limits if `categoryId` is set to `newLimitMinor`. */
 export function projectedCategorySumMinor(
   items: CategoryBudget[],
   categoryId: string,
@@ -47,42 +50,55 @@ export function canSetCategoryBudget(
   newLimitMinor: number,
 ): boolean {
   if (newLimitMinor <= 0) return false;
-  return (
-    projectedCategorySumMinor(items, categoryId, newLimitMinor) <= totalMonthlyMinor
-  );
+  return projectedCategorySumMinor(items, categoryId, newLimitMinor) <= totalMonthlyMinor;
 }
 
-/** Maximum limit allowed for one category without exceeding the monthly cap. */
 export function maxCategoryBudgetMinor(
   items: CategoryBudget[],
   totalMonthlyMinor: number,
   categoryId: string,
 ): number {
-  const othersSum = sumCategoryBudgetsMinor(
-    items.filter((b) => b.categoryId !== categoryId),
-  );
+  const othersSum = sumCategoryBudgetsMinor(items.filter((b) => b.categoryId !== categoryId));
   return Math.max(0, totalMonthlyMinor - othersSum);
 }
 
-export function canSetTotalMonthly(
-  items: CategoryBudget[],
-  newTotalMinor: number,
-): boolean {
+export function canSetTotalMonthly(items: CategoryBudget[], newTotalMinor: number): boolean {
   if (newTotalMinor <= 0) return false;
   return sumCategoryBudgetsMinor(items) <= newTotalMinor;
 }
 
-export const useBudgets = create<BudgetsState>()(
-  persist(
-    (set, get) => ({
+async function syncDb(get: () => BudgetsState): Promise<void> {
+  if (!isTauri()) return;
+  const { totalMonthlyMinor, items } = get();
+  await api.setBudgets({ totalMonthlyMinor, items });
+}
+
+const storeImpl = (set: (partial: Partial<BudgetsState> | ((s: BudgetsState) => Partial<BudgetsState>)) => void, get: () => BudgetsState): BudgetsState => ({
   totalMonthlyMinor: 50000,
-  items: seedBudgets,
+  items: isTauri() ? [] : seedBudgets,
+  hydrated: !isTauri(),
+
+  loadFromDb: async () => {
+    if (!isTauri()) {
+      set(() => ({ hydrated: true }));
+      return;
+    }
+    const snapshot = await api.getBudgets();
+    set(() => ({
+      totalMonthlyMinor: snapshot.totalMonthlyMinor,
+      items: snapshot.items,
+      hydrated: true,
+    }));
+  },
+
   setTotalMonthly: (limitMinor) => {
     const { items } = get();
     if (!canSetTotalMonthly(items, limitMinor)) return false;
     set({ totalMonthlyMinor: limitMinor });
+    void syncDb(get);
     return true;
   },
+
   setBudget: (categoryId, limitMinor) => {
     const { items, totalMonthlyMinor } = get();
     if (!canSetCategoryBudget(items, totalMonthlyMinor, categoryId, limitMinor)) {
@@ -91,27 +107,36 @@ export const useBudgets = create<BudgetsState>()(
     const exists = items.some((b) => b.categoryId === categoryId);
     if (exists) {
       set({
-        items: items.map((b) =>
-          b.categoryId === categoryId ? { ...b, limitMinor } : b,
-        ),
+        items: items.map((b) => (b.categoryId === categoryId ? { ...b, limitMinor } : b)),
       });
     } else {
       set({ items: [...items, { categoryId, limitMinor }] });
     }
+    void syncDb(get);
     return true;
   },
-  removeBudget: (categoryId) =>
+
+  removeBudget: (categoryId) => {
     set((state) => ({
       items: state.items.filter((b) => b.categoryId !== categoryId),
-    })),
-  replaceAll: (data) => set(data),
-    }),
-    {
-      name: "expense-tracker-budgets",
-      partialize: (state) => ({
-        totalMonthlyMinor: state.totalMonthlyMinor,
-        items: state.items,
+    }));
+    void syncDb(get);
+  },
+
+  replaceAll: (data) => {
+    set(data);
+    void persistBudgetsToDb();
+  },
+});
+
+export const useBudgets = isTauri()
+  ? create<BudgetsState>()(storeImpl)
+  : create<BudgetsState>()(
+      persist(storeImpl, {
+        name: "expense-tracker-budgets",
+        partialize: (state) => ({
+          totalMonthlyMinor: state.totalMonthlyMinor,
+          items: state.items,
+        }),
       }),
-    },
-  ),
-);
+    );

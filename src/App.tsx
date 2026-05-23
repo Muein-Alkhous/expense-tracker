@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "@/components/Sidebar";
+import { useDbBootstrap } from "@/hooks/useDbBootstrap";
 import { useSettingsSync } from "@/hooks/useSettingsSync";
 import TopBar from "@/components/TopBar";
 import AddExpenseModal from "@/components/AddExpenseModal";
@@ -18,6 +19,7 @@ import Settings from "@/pages/Settings";
 import { useUi, type PageId } from "@/store/ui";
 
 export default function App() {
+  const dbReady = useDbBootstrap();
   useSettingsSync();
   const { t } = useTranslation();
   const currentPage = useUi((s) => s.currentPage);
@@ -36,6 +38,14 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [openAddExpense]);
+
+  if (!dbReady) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-neutral-50 text-sm text-neutral-500 dark:bg-neutral-950 dark:text-neutral-400">
+        Loading your data…
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">

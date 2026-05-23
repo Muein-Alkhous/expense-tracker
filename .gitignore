@@ -19,6 +19,7 @@ src-tauri/Cargo.lock
 *.sqlite
 *.sqlite-journal
 backups/
+Backups/*.json
 
 # Editor / OS
 .DS_Store

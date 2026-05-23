@@ -11,6 +11,7 @@ export type SettingsSection =
   | "appearance"
   | "currency"
   | "backup"
+  | "recurring"
   | "notifications"
   | "about";
 
@@ -37,6 +38,7 @@ interface SettingsData {
   budgetAlerts: boolean;
   weeklyDigest: boolean;
   backupHistory: BackupRecord[];
+  lastBackupAt: string | null;
 }
 
 interface SettingsState extends SettingsData {
@@ -54,6 +56,7 @@ interface SettingsState extends SettingsData {
   setBudgetAlerts: (on: boolean) => void;
   setWeeklyDigest: (on: boolean) => void;
   addBackupRecord: (record: BackupRecord) => void;
+  setLastBackupAt: (iso: string | null) => void;
 }
 
 const initialData: SettingsData = {
@@ -71,6 +74,7 @@ const initialData: SettingsData = {
   budgetAlerts: true,
   weeklyDigest: false,
   backupHistory: [],
+  lastBackupAt: null,
 };
 
 export const useSettings = create<SettingsState>()(
@@ -97,6 +101,7 @@ export const useSettings = create<SettingsState>()(
         set((state) => ({
           backupHistory: [record, ...state.backupHistory].slice(0, 10),
         })),
+      setLastBackupAt: (lastBackupAt) => set({ lastBackupAt }),
     }),
     {
       name: "expense-tracker-settings",
@@ -116,6 +121,7 @@ export const useSettings = create<SettingsState>()(
           setBudgetAlerts,
           setWeeklyDigest,
           addBackupRecord,
+          setLastBackupAt,
           ...data
         } = state;
         void setTheme;
@@ -132,6 +138,7 @@ export const useSettings = create<SettingsState>()(
         void setBudgetAlerts;
         void setWeeklyDigest;
         void addBackupRecord;
+        void setLastBackupAt;
         return data;
       },
     },

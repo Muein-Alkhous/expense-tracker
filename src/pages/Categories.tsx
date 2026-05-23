@@ -119,13 +119,13 @@ export default function Categories() {
     if (selected) loadDraft(selected.id);
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     const name = draft.name.trim();
     if (!name) return;
 
     if (isCreating) {
-      const id = addCategory({ name, color: draft.color, icon: draft.icon });
-      if (draft.is_active === false) toggleActive(id);
+      const id = await addCategory({ name, color: draft.color, icon: draft.icon });
+      if (draft.is_active === false) await toggleActive(id);
       setIsCreating(false);
       setSelectedId(id);
       loadDraft(id);
@@ -133,7 +133,7 @@ export default function Categories() {
     }
 
     if (!selectedId) return;
-    updateCategory(selectedId, {
+    await updateCategory(selectedId, {
       name,
       color: draft.color,
       icon: draft.icon,
@@ -141,7 +141,7 @@ export default function Categories() {
     });
   }
 
-  function handleDeleteCategory() {
+  async function handleDeleteCategory() {
     if (!selectedId || isCreating || !selected) return;
     const hasActive = expenses.some(
       (e) => !e.deleted_at && e.category_id === selectedId,
@@ -158,7 +158,7 @@ export default function Categories() {
       )
     )
       return;
-    if (!deleteCategory(selectedId)) return;
+    if (!(await deleteCategory(selectedId))) return;
     removeBudget(selectedId);
     const next = useCategories.getState().items[0];
     if (next) {
