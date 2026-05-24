@@ -1,7 +1,6 @@
 // Expenses screen: searchable, filterable transaction list grouped by day.
 
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { deletedExpenses } from "@/lib/expenseFilters";
 import { useUi } from "@/store/ui";
 import FilterDropdown, { type FilterOption } from "@/components/FilterDropdown";
@@ -9,15 +8,23 @@ import ExpenseListItem from "@/components/ExpenseListItem";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
 import { formatDate } from "@/lib/date";
+import { PERIOD_OPTIONS } from "@/lib/period";
 import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import type { FxRate } from "@/types/fx";
 import { formatMinor } from "@/lib/money";
 import { useFxRates } from "@/store/fxRates";
 import dayjs from "dayjs";
 import type { Expense } from "@/types";
-import { PERIOD_OPTIONS, periodRange, type PeriodId } from "@/lib/period";
+import { periodRange, type PeriodId } from "@/lib/period";
 
 import { useSettings } from "@/store/settings";
+
+const DEFAULT_FILTERS = {
+  search: "",
+  category: "all",
+  period: "this_month",
+  payment: "all",
+};
 
 const PAYMENT_OPTIONS: FilterOption[] = [
   { id: "all", label: "All payment methods" },
@@ -27,15 +34,7 @@ const PAYMENT_OPTIONS: FilterOption[] = [
   { id: "other", label: "Other" },
 ];
 
-const DEFAULT_FILTERS = {
-  search: "",
-  category: "all",
-  period: "this_month",
-  payment: "all",
-};
-
 export default function Expenses() {
-  const { t } = useTranslation();
   const baseCurrency = useSettings((s) => s.baseCurrency);
   const fxRates = useFxRates((s) => s.rates);
   const items = useExpenses((s) => s.items);
@@ -51,6 +50,11 @@ export default function Expenses() {
       ...categories.map((c) => ({ id: c.id, label: c.name })),
     ],
     [categories],
+  );
+
+  const periodOptions: FilterOption[] = useMemo(
+    () => PERIOD_OPTIONS.map((o) => ({ id: o.id, label: o.label })),
+    [],
   );
 
   const filtered = useMemo(
@@ -74,11 +78,17 @@ export default function Expenses() {
     filters.period !== DEFAULT_FILTERS.period ||
     filters.payment !== DEFAULT_FILTERS.payment;
 
+  const expenseWord = filtered.length === 1 ? "expense" : "expenses";
+
   return (
     <div className="p-8">
       <div className="rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 p-4 dark:border-neutral-800">
-          <SearchInput value={filters.search} onChange={(v) => setFilters({ ...filters, search: v })} />
+          <SearchInput
+            value={filters.search}
+            onChange={(v) => setFilters({ ...filters, search: v })}
+            placeholder="Search notes, categories, amounts..."
+          />
           <div className="flex flex-wrap items-center gap-2">
             <FilterDropdown
               value={filters.category}
@@ -87,7 +97,7 @@ export default function Expenses() {
             />
             <FilterDropdown
               value={filters.period}
-              options={PERIOD_OPTIONS}
+              options={periodOptions}
               onChange={(id) => setFilters({ ...filters, period: id })}
             />
             <FilterDropdown
@@ -114,7 +124,7 @@ export default function Expenses() {
                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
               </svg>
-              {t("nav.trash")}
+              Trash
               {trashCount > 0 && (
                 <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums dark:bg-neutral-600">
                   {trashCount}
@@ -125,15 +135,16 @@ export default function Expenses() {
         </div>
 
         <div className="border-b border-neutral-100 px-6 py-3 text-sm text-neutral-500 dark:border-neutral-800">
-          Showing <span className="font-medium text-neutral-700 dark:text-neutral-300">{filtered.length}</span>{" "}
-          {filtered.length === 1 ? "expense" : "expenses"} ·{" "}
-          Total <span className="font-medium text-neutral-900 dark:text-neutral-50">{formatMinor(total, baseCurrency)}</span>
+          Showing{" "}
+          <span className="font-medium text-neutral-700 dark:text-neutral-300">{filtered.length}</span>{" "}
+          {expenseWord} · Total{" "}
+          <span className="font-medium text-neutral-900 dark:text-neutral-50">
+            {formatMinor(total, baseCurrency)}
+          </span>
         </div>
 
         {groups.length === 0 ? (
-          <div className="p-12 text-center text-sm text-neutral-500">
-            No expenses match your filters.
-          </div>
+          <div className="p-12 text-center text-sm text-neutral-500">No expenses match your filters.</div>
         ) : (
           <div>
             {groups.map((group) => (
@@ -163,12 +174,13 @@ export default function Expenses() {
 interface SearchInputProps {
   value: string;
   onChange: (v: string) => void;
+  placeholder: string;
 }
 
-function SearchInput({ value, onChange }: SearchInputProps) {
+function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
   return (
     <div className="relative w-full max-w-md">
-      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400">
+      <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-neutral-400">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -176,8 +188,8 @@ function SearchInput({ value, onChange }: SearchInputProps) {
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search notes, categories, amounts..."
-        className="w-full rounded-control border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-50 dark:placeholder:text-neutral-500"
+        placeholder={placeholder}
+        className="w-full rounded-control border border-neutral-200 bg-white py-2 ps-9 pe-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-50 dark:placeholder:text-neutral-500"
       />
     </div>
   );

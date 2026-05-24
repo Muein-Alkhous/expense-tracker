@@ -9,16 +9,37 @@ export type PeriodId =
   | "this_year"
   | "all_time";
 
-export const PERIOD_OPTIONS: { id: PeriodId; label: string }[] = [
-  { id: "this_month", label: "This month" },
-  { id: "last_month", label: "Last month" },
-  { id: "last_3_months", label: "Last 3 months" },
-  { id: "this_year", label: "This year" },
-  { id: "all_time", label: "All time" },
+export const PERIOD_IDS: PeriodId[] = [
+  "this_month",
+  "last_month",
+  "last_3_months",
+  "this_year",
+  "all_time",
 ];
 
+const PERIOD_LABELS: Record<PeriodId, string> = {
+  this_month: "This month",
+  last_month: "Last month",
+  last_3_months: "Last 3 months",
+  this_year: "This year",
+  all_time: "All time",
+};
+
+const SPENT_LABELS: Record<PeriodId, string> = {
+  this_month: "Spent this month",
+  last_month: "Spent last month",
+  last_3_months: "Spent (last 3 months)",
+  this_year: "Spent this year",
+  all_time: "Total spent",
+};
+
+export const PERIOD_OPTIONS = PERIOD_IDS.map((id) => ({
+  id,
+  label: PERIOD_LABELS[id],
+}));
+
 export function periodLabel(period: PeriodId): string {
-  return PERIOD_OPTIONS.find((o) => o.id === period)?.label ?? "This month";
+  return PERIOD_LABELS[period];
 }
 
 export function periodRange(period: PeriodId): {
@@ -104,20 +125,7 @@ export function filterByRange<T extends { date: string }>(
 }
 
 export function periodSpentLabel(period: PeriodId): string {
-  switch (period) {
-    case "this_month":
-      return "Spent this month";
-    case "last_month":
-      return "Spent last month";
-    case "last_3_months":
-      return "Spent (last 3 months)";
-    case "this_year":
-      return "Spent this year";
-    case "all_time":
-      return "Total spent";
-    default:
-      return "Spent";
-  }
+  return SPENT_LABELS[period] ?? "Spent";
 }
 
 export function periodPrintLabel(period: PeriodId): string {

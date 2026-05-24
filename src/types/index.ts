@@ -57,8 +57,6 @@ export interface RecurringRule {
 
 export interface Settings {
   theme: "light" | "dark" | "system";
-  language: string;
-  direction: "ltr" | "rtl";
   base_currency: string;
   week_start_day: number;
   backup_path?: string;

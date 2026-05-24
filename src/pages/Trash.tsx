@@ -33,7 +33,7 @@ export default function Trash() {
     const label = e?.note?.trim() || getCategory(e?.category_id ?? "")?.name || "this expense";
     if (
       !window.confirm(
-        `Permanently delete "${label.slice(0, 60)}${label.length > 60 ? "…" : ""}"? This cannot be undone.`,
+        `Permanently delete "${`${label.slice(0, 60)}${label.length > 60 ? "…" : ""}`}"? This cannot be undone.`,
       )
     )
       return;
@@ -42,12 +42,8 @@ export default function Trash() {
 
   function handleEmptyTrash() {
     if (deleted.length === 0) return;
-    if (
-      !window.confirm(
-        `Permanently delete all ${deleted.length} item(s) in trash? This cannot be undone.`,
-      )
-    )
-      return;
+    const noun = deleted.length === 1 ? "item" : "items";
+    if (!window.confirm(`Permanently delete all ${deleted.length} ${noun} in trash? This cannot be undone.`)) return;
     emptyTrash();
   }
 
@@ -57,8 +53,7 @@ export default function Trash() {
         <div>
           <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Trash</h1>
           <p className="mt-1 max-w-xl text-sm text-neutral-600 dark:text-neutral-400">
-            Deleted expenses stay here until you restore them or remove them permanently. They are
-            excluded from totals, budgets, and reports.
+            Deleted expenses stay here until you restore them or remove them permanently. They are excluded from totals, budgets, and reports.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -86,15 +81,15 @@ export default function Trash() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+              <thead className="border-b border-neutral-200 bg-neutral-50 text-start text-xs uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                 <tr>
                   <th className="px-4 py-3 font-medium">Deleted</th>
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Category</th>
                   <th className="px-4 py-3 font-medium">Note</th>
                   <th className="px-4 py-3 font-medium">Method</th>
-                  <th className="px-4 py-3 text-right font-medium">Amount</th>
-                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                  <th className="px-4 py-3 text-end font-medium">Amount</th>
+                  <th className="px-4 py-3 text-end font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -130,10 +125,10 @@ export default function Trash() {
                       <td className="px-4 py-3 capitalize text-neutral-500 dark:text-neutral-400">
                         {e.payment_method ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
+                      <td className="px-4 py-3 text-end font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
                         {formatMinor(e.amount_minor, e.currency_code)}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-end">
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"

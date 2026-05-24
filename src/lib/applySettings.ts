@@ -1,6 +1,5 @@
-// Applies theme, accent, and language from settings to the document.
+// Applies theme and accent from settings to the document.
 
-import i18n from "@/lib/i18n";
 import type { ThemeMode } from "@/store/settings";
 
 function darkenHex(hex: string, amount: number): string {
@@ -29,13 +28,6 @@ export function applyAccentColor(color: string): void {
   const root = document.documentElement;
   root.style.setProperty("--color-accent", color);
   root.style.setProperty("--color-accent-hover", darkenHex(color, 20));
-}
-
-export async function applyLanguage(language: string): Promise<void> {
-  await i18n.changeLanguage(language);
-  const dir = language === "ar" ? "rtl" : "ltr";
-  document.documentElement.lang = language;
-  document.documentElement.dir = dir;
 }
 
 export function subscribeSystemTheme(onChange: () => void): () => void {

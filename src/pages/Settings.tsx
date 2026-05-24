@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toggle from "@/components/ui/Toggle";
@@ -39,11 +38,6 @@ const SECTIONS: { id: SettingsSection; label: string }[] = [
   { id: "about", label: "About" },
 ];
 
-const LANGUAGES = [
-  { id: "en", label: "English" },
-  { id: "ar", label: "العربية" },
-];
-
 const DEFAULT_VIEWS: { id: PageId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "expenses", label: "Expenses" },
@@ -55,7 +49,6 @@ const DEFAULT_VIEWS: { id: PageId; label: string }[] = [
 const CURRENCIES = ["USD", "EUR", "TRY", "SYP", "GBP"];
 
 export default function Settings() {
-  const { t } = useTranslation();
   const [section, setSection] = useState<SettingsSection>("general");
   const [status, setStatus] = useState<{ tone: "ok" | "error"; message: string } | null>(null);
   const [diskBackups, setDiskBackups] = useState<BackupFileInfo[]>([]);
@@ -90,7 +83,7 @@ export default function Settings() {
   async function handleBackupNow() {
     let password: string | undefined;
     if (s.encryptBackups) {
-      const entered = window.prompt(t("settings.backupEncrypted"));
+      const entered = window.prompt("Enter a password to encrypt this backup:");
       if (!entered) return;
       password = entered;
     }
@@ -106,11 +99,11 @@ export default function Settings() {
         s.setLastBackupAt(new Date().toISOString());
         schedulePersistSettings();
         await loadDiskBackups();
-        showStatus("ok", `${t("settings.backupSuccess")} Saved to ${path}`);
+        showStatus("ok", `Backup downloaded successfully. Saved to ${path}`);
         return;
       }
       downloadBackupFile(payload, s.encryptBackups, password);
-      showStatus("ok", t("settings.backupSuccess"));
+      showStatus("ok", "Backup downloaded successfully.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Backup failed. Please try again.";
       showStatus("error", msg);
@@ -125,14 +118,14 @@ export default function Settings() {
         const encrypted = encryptedHint ?? file.name.endsWith(".enc.json");
         let password: string | undefined;
         if (encrypted) {
-          password = window.prompt(t("settings.restorePassword")) ?? undefined;
+          password = window.prompt("Enter the backup password:") ?? undefined;
           if (!password) return;
         }
-        if (!window.confirm(t("settings.restoreConfirm"))) return;
+        if (!window.confirm("Restore will replace all current data. Continue?")) return;
 
         const payload = parseBackupFileContent(raw, encrypted, password);
         await restoreBackupPayload(payload);
-        showStatus("ok", t("settings.restoreSuccess"));
+        showStatus("ok", "Backup restored. Your data has been reloaded.");
       } catch (err) {
         showStatus("error", err instanceof Error ? err.message : "Restore failed.");
       }
@@ -144,15 +137,15 @@ export default function Settings() {
     try {
       let password: string | undefined;
       if (encrypted) {
-        password = window.prompt(t("settings.restorePassword")) ?? undefined;
+        password = window.prompt("Enter the backup password:") ?? undefined;
         if (!password) return;
       }
-      if (!window.confirm(t("settings.restoreConfirm"))) return;
+      if (!window.confirm("Restore will replace all current data. Continue?")) return;
 
       const raw = await api.readBackupFile(filePath);
       const payload = parseBackupFileContent(raw, encrypted, password);
       await restoreBackupPayload(payload);
-      showStatus("ok", t("settings.restoreSuccess"));
+      showStatus("ok", "Backup restored. Your data has been reloaded.");
     } catch (err) {
       showStatus("error", err instanceof Error ? err.message : "Restore failed.");
     }
@@ -194,7 +187,7 @@ export default function Settings() {
             type="button"
             onClick={() => setSection(item.id)}
             className={
-              "rounded-control px-3 py-2 text-left text-sm transition-colors " +
+              "rounded-control px-3 py-2 text-start text-sm transition-colors " +
               (section === item.id
                 ? "bg-accent/10 font-medium text-accent dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-1 dark:ring-indigo-400/40"
                 : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50")
@@ -251,14 +244,7 @@ export default function Settings() {
         </div>
 
         {section === "general" && (
-          <SettingsPanel title="General" description="Language, calendar, and default views.">
-            <Field label="Language" hint="The display language for the interface.">
-              <Select
-                value={s.language}
-                options={LANGUAGES.map((l) => ({ value: l.id, label: l.label }))}
-                onChange={(v) => void s.setLanguage(v)}
-              />
-            </Field>
+          <SettingsPanel title="General" description="Calendar and default views.">
             <Field label="Week starts on" hint="Used for weekly summaries and filters.">
               <Segmented
                 options={[
@@ -300,7 +286,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => s.setTheme(mode)}
                     className={
-                      "rounded-card border-2 p-3 text-left transition-colors " +
+                      "rounded-card border-2 p-3 text-start transition-colors " +
                       (s.theme === mode
                         ? "border-accent bg-accent/5 dark:border-indigo-400 dark:bg-indigo-500/15"
                         : "border-neutral-200 hover:border-neutral-300 dark:border-neutral-600 dark:hover:border-neutral-500")
@@ -417,7 +403,7 @@ export default function Settings() {
               <p className="text-xs text-neutral-600 dark:text-neutral-400">
                 {isTauri()
                   ? "Saves a backup file to the folder above. Recent files are listed from that folder on disk."
-                  : "Downloads a JSON file to your browser’s Downloads folder. Use Restore file to pick a backup."}
+                  : "Downloads a JSON file to your browser's Downloads folder. Use Restore file to pick a backup."}
               </p>
               <div>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
@@ -510,8 +496,7 @@ export default function Settings() {
             </Row>
             {s.budgetAlerts && (
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                Budget alerts appear as a banner on the Budgets screen when spending exceeds a category
-                or monthly limit.
+                Budget alerts appear as a banner on the Budgets screen when spending exceeds a category or monthly limit.
               </p>
             )}
           </SettingsPanel>
@@ -523,8 +508,7 @@ export default function Settings() {
               <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Expense Tracker</p>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Version 0.1.0 · Local-first</p>
               <p className="mt-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
-                A minimal personal finance app. Your data is stored locally in SQLite on this device.
-                No account required.
+                A minimal personal finance app. Your data is stored locally in SQLite on this device. No account required.
               </p>
               <div className="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
                 <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Sample data</p>
@@ -536,11 +520,7 @@ export default function Settings() {
                   variant="ghost"
                   className="mt-3"
                   onClick={async () => {
-                    if (
-                      !window.confirm(
-                        "Replace all expenses, categories, and budgets with demo data? This cannot be undone.",
-                      )
-                    ) {
+                    if (!window.confirm("Replace all expenses, categories, and budgets with demo data? This cannot be undone.")) {
                       return;
                     }
                     try {

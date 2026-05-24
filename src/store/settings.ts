@@ -2,7 +2,6 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { applyLanguage } from "@/lib/applySettings";
 import type { PageId } from "@/store/ui";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -25,7 +24,6 @@ export interface BackupRecord {
 
 interface SettingsData {
   theme: ThemeMode;
-  language: string;
   baseCurrency: string;
   weekStartDay: number;
   defaultView: PageId;
@@ -43,7 +41,6 @@ interface SettingsData {
 
 interface SettingsState extends SettingsData {
   setTheme: (theme: ThemeMode) => void;
-  setLanguage: (language: string) => Promise<void>;
   setBaseCurrency: (code: string) => void;
   setWeekStartDay: (day: number) => void;
   setDefaultView: (view: PageId) => void;
@@ -61,7 +58,6 @@ interface SettingsState extends SettingsData {
 
 const initialData: SettingsData = {
   theme: "light",
-  language: "en",
   baseCurrency: "USD",
   weekStartDay: 1,
   defaultView: "dashboard",
@@ -82,10 +78,6 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       ...initialData,
       setTheme: (theme) => set({ theme }),
-      setLanguage: async (language) => {
-        set({ language });
-        await applyLanguage(language);
-      },
       setBaseCurrency: (baseCurrency) => set({ baseCurrency }),
       setWeekStartDay: (weekStartDay) => set({ weekStartDay }),
       setDefaultView: (defaultView) => set({ defaultView }),
@@ -108,7 +100,6 @@ export const useSettings = create<SettingsState>()(
       partialize: (state) => {
         const {
           setTheme,
-          setLanguage,
           setBaseCurrency,
           setWeekStartDay,
           setDefaultView,
@@ -125,7 +116,6 @@ export const useSettings = create<SettingsState>()(
           ...data
         } = state;
         void setTheme;
-        void setLanguage;
         void setBaseCurrency;
         void setWeekStartDay;
         void setDefaultView;

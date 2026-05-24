@@ -17,6 +17,7 @@ pub fn run() {
         .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let db = AppDb::open(&app.handle())?;
             app.manage(db);
@@ -51,8 +52,6 @@ pub fn run() {
             commands::read_backup_file,
             commands::get_ui_settings,
             commands::set_ui_settings,
-            commands::pick_backup_folder,
-            commands::pick_backup_file,
             commands::get_insights,
         ])
         .run(tauri::generate_context!())

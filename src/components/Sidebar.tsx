@@ -1,17 +1,16 @@
 // Persistent left sidebar with primary navigation and quick-add hint.
 
-import { useTranslation } from "react-i18next";
 import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 
 const navItems = [
-  { id: "dashboard", labelKey: "nav.dashboard", icon: <DashboardIcon /> },
-  { id: "expenses", labelKey: "nav.expenses", icon: <ListIcon /> },
-  { id: "trash", labelKey: "nav.trash", icon: <TrashIcon /> },
-  { id: "categories", labelKey: "nav.categories", icon: <TagIcon /> },
-  { id: "budgets", labelKey: "nav.budgets", icon: <ChartIcon /> },
-  { id: "reports", labelKey: "nav.reports", icon: <ReportIcon /> },
-  { id: "settings", labelKey: "nav.settings", icon: <SettingsIcon /> },
+  { id: "dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+  { id: "expenses", label: "Expenses", icon: <ListIcon /> },
+  { id: "trash", label: "Trash", icon: <TrashIcon /> },
+  { id: "categories", label: "Categories", icon: <TagIcon /> },
+  { id: "budgets", label: "Budgets", icon: <ChartIcon /> },
+  { id: "reports", label: "Reports", icon: <ReportIcon /> },
+  { id: "settings", label: "Settings", icon: <SettingsIcon /> },
 ] as const;
 
 interface SidebarProps {
@@ -20,7 +19,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
-  const { t } = useTranslation();
   const openAddExpense = useUi((s) => s.openAddExpense);
   const deletedCount = useExpenses((s) => s.items.reduce((n, e) => n + (e.deleted_at ? 1 : 0), 0));
 
@@ -38,10 +36,10 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
         </div>
         <div>
           <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
-            {t("app.name")}
+            Expense Tracker
           </div>
           <div className="text-[10px] uppercase tracking-wider text-neutral-500">
-            {t("app.tagline")}
+            Personal Finance
           </div>
         </div>
       </div>
@@ -61,7 +59,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
               }
             >
               <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
-              <span className="flex-1 text-start">{t(item.labelKey)}</span>
+              <span className="flex-1 text-start">{item.label}</span>
               {item.id === "trash" && deletedCount > 0 && (
                 <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">
                   {deletedCount}
@@ -81,7 +79,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
-            {t("actions.quickAdd")}
+            Quick add
           </span>
           <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium dark:bg-neutral-900/15">
             Ctrl+N

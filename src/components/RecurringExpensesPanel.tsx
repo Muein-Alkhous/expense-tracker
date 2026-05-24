@@ -143,12 +143,12 @@ export default function RecurringExpensesPanel() {
   if (!inTauri) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          Recurring <strong>rules</strong> (scheduled generation) are saved in SQLite when you run
-          the desktop app (
-          <code className="text-neutral-800 dark:text-neutral-200">npm run tauri dev</code>
-          ).
-        </p>
+        <p
+          className="text-sm text-neutral-600 dark:text-neutral-400"
+          dangerouslySetInnerHTML={{
+            __html: "Recurring <strong>rules</strong> (scheduled generation) are saved in SQLite when you run the desktop app.",
+          }}
+        />
         {flaggedRecurring.length > 0 ? (
           <div className="rounded-card border border-neutral-200 dark:border-neutral-700">
             <p className="border-b border-neutral-200 px-4 py-2 text-xs font-medium uppercase tracking-wider text-neutral-500 dark:border-neutral-700">

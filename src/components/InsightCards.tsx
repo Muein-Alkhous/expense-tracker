@@ -1,5 +1,3 @@
-import { useTranslation } from "react-i18next";
-import { useFormatLocale } from "@/hooks/useFormatLocale";
 import { formatMinor } from "@/lib/money";
 import type { Insight } from "@/types/insight";
 
@@ -8,10 +6,33 @@ interface InsightCardsProps {
   loading?: boolean;
 }
 
-export default function InsightCards({ insights, loading }: InsightCardsProps) {
-  const { t } = useTranslation("reports");
-  const locale = useFormatLocale();
+const INSIGHT_TAG: Record<string, string> = {
+  alert: "ALERT",
+  insight: "INSIGHT",
+};
 
+function formatInsightMessage(key: string, params: Record<string, unknown>): string {
+  switch (key) {
+    case "insight.category_mom_up":
+      return `${params.category} spending up ${params.percent}% vs previous period`;
+    case "insight.category_mom_down":
+      return `${params.category} spending down ${params.percent}% vs previous period`;
+    case "insight.peak_weekday":
+      return `${params.weekday} is your highest spending day — avg ${params.amountFormatted}`;
+    case "insight.budget_warning":
+      return `${params.category} budget at ${params.percent}% of limit`;
+    case "insight.budget_exceeded":
+      return `Exceeded ${params.category} budget by ${params.overFormatted}`;
+    case "insight.category_concentration":
+      return `Two categories make up ${params.percent}% of spend`;
+    case "insight.unusual_transaction":
+      return `Unusually large ${params.category} expense: ${params.amountFormatted}`;
+    default:
+      return key;
+  }
+}
+
+export default function InsightCards({ insights, loading }: InsightCardsProps) {
   if (loading && insights.length === 0) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -30,31 +51,23 @@ export default function InsightCards({ insights, loading }: InsightCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       {insights.map((card) => (
-        <InsightCard key={card.id} insight={card} t={t} locale={locale} />
+        <InsightCard key={card.id} insight={card} />
       ))}
     </div>
   );
 }
 
-function InsightCard({
-  insight,
-  t,
-  locale,
-}: {
-  insight: Insight;
-  t: (key: string, opts?: Record<string, unknown>) => string;
-  locale: string;
-}) {
+function InsightCard({ insight }: { insight: Insight }) {
   const params = { ...insight.params };
   if (typeof params.amountMinor === "number" && typeof params.currency === "string") {
-    params.amountFormatted = formatMinor(params.amountMinor, params.currency, locale);
+    params.amountFormatted = formatMinor(params.amountMinor, params.currency);
   }
   if (typeof params.overMinor === "number" && typeof params.currency === "string") {
-    params.overFormatted = formatMinor(params.overMinor, params.currency, locale);
+    params.overFormatted = formatMinor(params.overMinor, params.currency);
   }
 
-  const text = t(insight.messageKey, params);
-  const tag = insight.kind === "alert" ? t("insight.tagAlert") : t("insight.tagInsight");
+  const text = formatInsightMessage(insight.messageKey, params);
+  const tag = INSIGHT_TAG[insight.kind] ?? "";
   const tagTone = insight.kind === "alert" ? "alert" : "insight";
 
   return (

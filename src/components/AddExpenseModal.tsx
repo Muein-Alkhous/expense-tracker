@@ -28,6 +28,14 @@ const CURRENCIES = SUPPORTED_CURRENCIES;
 const fieldClass =
   "w-full rounded-control border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50 dark:placeholder:text-neutral-500";
 
+const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  cash: "Cash",
+  card: "Card",
+  transfer: "Transfer",
+  bank: "Bank",
+  other: "Other",
+};
+
 export default function AddExpenseModal() {
   const open = useUi((s) => s.addExpenseOpen);
   const editingExpenseId = useUi((s) => s.editingExpenseId);
@@ -262,24 +270,24 @@ export default function AddExpenseModal() {
                     : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200")
                 }
               >
-                {m.label}
+                {PAYMENT_LABELS[m.id]}
               </button>
             );
           })}
         </div>
 
         <div className="flex flex-wrap items-center gap-2 rounded-control border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-accent dark:border-neutral-700 dark:bg-neutral-800">
-          {tags.map((t) => (
+          {tags.map((tagName) => (
             <span
-              key={t}
+              key={tagName}
               className="inline-flex items-center gap-1 rounded bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent"
             >
-              #{t}
+              #{tagName}
               <button
                 type="button"
-                onClick={() => removeTag(t)}
+                onClick={() => removeTag(tagName)}
                 className="text-accent/70 hover:text-accent"
-                aria-label={`Remove tag ${t}`}
+                aria-label={`Remove tag ${tagName}`}
               >
                 ×
               </button>
@@ -348,7 +356,7 @@ function AmountField({
             onClick={() => setCurrencyMenuOpen((v) => !v)}
             aria-label={`Currency, ${currency}`}
             aria-expanded={currencyMenuOpen}
-            className="inline-flex min-w-[5rem] items-center justify-start gap-1.5 px-3 py-2 text-left text-sm font-semibold tracking-wide text-neutral-900 hover:bg-neutral-100 dark:text-neutral-50 dark:hover:bg-neutral-700"
+            className="inline-flex min-w-[5rem] items-center justify-start gap-1.5 px-3 py-2 text-start text-sm font-semibold tracking-wide text-neutral-900 hover:bg-neutral-100 dark:text-neutral-50 dark:hover:bg-neutral-700"
           >
             {/* Plain sans text — monospace font loading flicker ruled out */}
             <span className="min-w-[2.75rem] shrink-0 font-sans tabular-nums">
@@ -383,7 +391,7 @@ function AmountField({
         />
       </div>
       {currencyMenuOpen && (
-        <ul className="absolute left-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
+        <ul className="absolute start-0 top-full z-30 mt-1 min-w-[88px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
           {CURRENCIES.map((c) => {
             const active = c === currency;
             return (
@@ -395,7 +403,7 @@ function AmountField({
                     setCurrencyMenuOpen(false);
                   }}
                   className={
-                    "block w-full px-3 py-1.5 text-left text-sm transition-colors " +
+                    "block w-full px-3 py-1.5 text-start text-sm transition-colors " +
                     (active
                       ? "bg-accent/10 text-accent"
                       : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700")

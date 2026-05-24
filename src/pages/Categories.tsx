@@ -147,15 +147,11 @@ export default function Categories() {
       (e) => !e.deleted_at && e.category_id === selectedId,
     );
     if (hasActive) {
-      window.alert(
-        `Cannot delete "${selected.name}" while expenses still use this category. Delete or move those expenses first.`,
-      );
+      window.alert(`Cannot delete "${selected.name}" while expenses still use this category. Delete or move those expenses first.`);
       return;
     }
     if (
-      !window.confirm(
-        `Delete category "${selected.name}"? Budgets linked to this category will be removed. This cannot be undone.`,
-      )
+      !window.confirm(`Delete category "${selected.name}"? Budgets linked to this category will be removed. This cannot be undone.`)
     )
       return;
     if (!(await deleteCategory(selectedId))) return;
@@ -183,7 +179,7 @@ export default function Categories() {
     <div className="flex h-full flex-col p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
+          <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-neutral-400 dark:text-neutral-500">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -192,14 +188,14 @@ export default function Categories() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search categories..."
-            className="w-full rounded-control border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+            className="w-full rounded-control border border-neutral-200 bg-white py-2 ps-9 pe-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
           />
         </div>
         <Button onClick={startCreate}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          New Category
+          Add category
         </Button>
       </div>
 
@@ -209,12 +205,14 @@ export default function Categories() {
             <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Active categories
             </h2>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">{filtered.length} items</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">
+              {filtered.length} items
+            </span>
           </header>
           <div className="flex-1 overflow-y-auto">
             {filtered.length === 0 ? (
               <p className="p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                No categories match your search.
+                {search.trim() ? "No categories match your search." : "No categories yet."}
               </p>
             ) : (
               filtered.map((cat) => {
@@ -344,12 +342,12 @@ export default function Categories() {
                 </svg>
                 Spending insight
               </div>
-              <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-                <strong className="text-neutral-900 dark:text-neutral-50">{insightCategory.name}</strong> has{" "}
-                {insightStats.count} recorded {insightStats.count === 1 ? "expense" : "expenses"} totalling{" "}
-                {formatMinor(insightStats.total, baseCurrency)}. Consider setting a budget for this category
-                if spending feels high.
-              </p>
+              <p
+                className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
+                dangerouslySetInnerHTML={{
+                  __html: `<strong>${insightCategory.name}</strong> has ${insightStats.count} recorded ${insightStats.count === 1 ? "expense" : "expenses"} totalling ${formatMinor(insightStats.total, baseCurrency)}. Consider setting a budget for this category if spending feels high.`,
+                }}
+              />
             </div>
           )}
         </aside>

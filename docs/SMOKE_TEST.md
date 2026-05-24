@@ -36,7 +36,7 @@ Run `bash scripts/smoke-test.sh` to repeat automated checks.
 | Backup folder | Settings → Choose folder, Backup now | Pass |
 | Backup list | Recent files appear from disk path | Pass |
 | Restore backup | Restore from list or Restore file | Pass |
-| Settings persist | Change theme/language, restart app | Pass |
+| Settings persist | Change theme, restart app | Pass |
 | Recurring | Add rule, Generate due expenses | Pass |
 | Sample data | Settings → About → Load sample data | Pass |
 

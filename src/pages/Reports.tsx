@@ -19,7 +19,6 @@ import FxMissingBanner from "@/components/FxMissingBanner";
 import InsightCards from "@/components/InsightCards";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useInsights } from "@/hooks/useInsights";
-import { useFormatLocale } from "@/hooks/useFormatLocale";
 import { activeExpenses } from "@/lib/expenseFilters";
 import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatChartDate, formatDate, toDateKey } from "@/lib/date";
@@ -42,7 +41,6 @@ import type { FxRate } from "@/types/fx";
 import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
 import dayjs from "dayjs";
-import { useTranslation } from "react-i18next";
 import { comparePeriods, formatTrendPct } from "@/lib/periodComparison";
 
 type TrendRange = "all" | "60" | "30";
@@ -50,8 +48,6 @@ type TrendRange = "all" | "60" | "30";
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export default function Reports() {
-  const { t } = useTranslation("reports");
-  const locale = useFormatLocale();
   const rawExpenses = useExpenses((s) => s.items);
   const expenses = useMemo(() => activeExpenses(rawExpenses), [rawExpenses]);
   const categories = useCategories((s) => s.items);
@@ -168,7 +164,7 @@ export default function Reports() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
         <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={openExportCsv}>{t("export")}</Button>
+          <Button variant="ghost" onClick={openExportCsv}>Export</Button>
         </div>
       </div>
 
@@ -176,7 +172,7 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("spendingByCategory")}</h2>
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Spending by category</h2>
           <div className="flex flex-col items-center gap-6 sm:flex-row">
             <div className="h-52 w-52 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -228,21 +224,21 @@ export default function Reports() {
         {comparison && (
           <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
             <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">
-              {t("comparedTo", { period: previousPeriodPrintLabel(period) ?? t("previousPeriod") })}
+              Compared to {previousPeriodPrintLabel(period) ?? "previous period"}
             </h2>
             <div className="space-y-6">
               <CompareBar
-                label={t("spending")}
+                label="SPENDING"
                 change={comparison.spendingChangePct ?? 0}
                 positiveIsBad
               />
               <CompareBar
-                label={t("avgDailySpend")}
+                label="AVG DAILY SPEND"
                 change={comparison.dailyAvgChangePct ?? 0}
                 positiveIsBad
               />
               <CompareBar
-                label={t("transactionCount")}
+                label="TRANSACTIONS"
                 change={comparison.countChangePct ?? 0}
                 positiveIsBad
               />
@@ -251,19 +247,13 @@ export default function Reports() {
               {(comparison.spendingChangePct ?? 0) > 0 ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: t("spendingUp", {
-                      pct: Math.abs(comparison.spendingChangePct ?? 0).toFixed(1),
-                      period: previousPeriodPrintLabel(period) ?? t("previousPeriod"),
-                    }),
+                    __html: `Spending is up <strong>${Math.abs(comparison.spendingChangePct ?? 0).toFixed(1)}%</strong> compared to ${previousPeriodPrintLabel(period) ?? "previous period"}.`,
                   }}
                 />
               ) : (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: t("spendingDown", {
-                      pct: Math.abs(comparison.spendingChangePct ?? 0).toFixed(1),
-                      period: previousPeriodPrintLabel(period) ?? t("previousPeriod"),
-                    }),
+                    __html: `You spent <strong>${Math.abs(comparison.spendingChangePct ?? 0).toFixed(1)}%</strong> less than ${previousPeriodPrintLabel(period) ?? "previous period"}.`,
                   }}
                 />
               )}
@@ -275,8 +265,8 @@ export default function Reports() {
       <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("dailyTrend")}</h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("trailingDays", { days: trendDays })}</p>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Daily spending trend</h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">Trailing {trendDays} days activity</p>
           </div>
           <div className="flex rounded-control border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-950">
             {(["all", "60", "30"] as TrendRange[]).map((r) => (
@@ -349,13 +339,13 @@ export default function Reports() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           <header className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("topTransactions")}</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Top transactions</h2>
             <button
               type="button"
               onClick={() => setCurrentPage("expenses")}
               className="text-xs font-medium text-accent hover:underline"
             >
-              {t("viewAll")}
+              View all
             </button>
           </header>
           <ul>
@@ -373,7 +363,7 @@ export default function Reports() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-neutral-900 dark:text-neutral-50">
-                      {e.note ?? t("expenseFallback")}
+                      {e.note ?? "Expense"}
                     </p>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       {cat?.name} · {formatDate(e.date, "MMM D")}
@@ -400,14 +390,14 @@ export default function Reports() {
             })}
             {topTransactions.length === 0 && (
               <li className="px-6 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                {t("noTransactions")}
+                No transactions in this range.
               </li>
             )}
           </ul>
         </section>
 
         <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("dowPattern")}</h2>
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Spending by day of week</h2>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dowData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -431,10 +421,10 @@ export default function Reports() {
           </div>
           <div className="mt-4 flex justify-center gap-6 text-xs text-neutral-500 dark:text-neutral-400">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> {t("peakDay")}
+              <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Peak day
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-300 dark:bg-neutral-600" /> {t("dailyAverage")}
+              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-300 dark:bg-neutral-600" /> Daily average
             </span>
           </div>
         </section>
@@ -442,16 +432,16 @@ export default function Reports() {
 
       {comparison && (
         <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-2 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("categoryComparison")}</h2>
-          <p className="mb-4 text-xs text-neutral-500 dark:text-neutral-400">{t("categoryComparisonHint")}</p>
+          <h2 className="mb-2 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Category comparison</h2>
+          <p className="mb-4 text-xs text-neutral-500 dark:text-neutral-400">Spend vs previous period; highlighted when change exceeds ±15%.</p>
           <div className="overflow-auto">
             <table className="w-full min-w-[520px] text-sm">
               <thead className="text-xs uppercase tracking-wider text-neutral-500">
                 <tr>
-                  <th className="py-2 text-left">{t("colCategory")}</th>
-                  <th className="py-2 text-right">{t("colThisPeriod")}</th>
-                  <th className="py-2 text-right">{t("colPrevious")}</th>
-                  <th className="py-2 text-right">{t("colChange")}</th>
+                  <th className="py-2 text-left">Category</th>
+                  <th className="py-2 text-right">This period</th>
+                  <th className="py-2 text-right">Previous</th>
+                  <th className="py-2 text-right">Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -471,10 +461,10 @@ export default function Reports() {
                         {cat?.name ?? "—"}
                       </td>
                       <td className="py-2 text-right tabular-nums text-neutral-900 dark:text-neutral-50">
-                        {formatMinor(row.currentMinor, baseCurrency, locale)}
+                        {formatMinor(row.currentMinor, baseCurrency)}
                       </td>
                       <td className="py-2 text-right tabular-nums text-neutral-600 dark:text-neutral-300">
-                        {formatMinor(row.previousMinor, baseCurrency, locale)}
+                        {formatMinor(row.previousMinor, baseCurrency)}
                       </td>
                       <td className="py-2 text-right tabular-nums">
                         <span
@@ -497,14 +487,14 @@ export default function Reports() {
       )}
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-400 dark:border-neutral-800 dark:text-neutral-500">
-        <span>© {new Date().getFullYear()} Expense Tracker · {t("dataStoredLocally")}</span>
+        <span>© {new Date().getFullYear()} Expense Tracker · Data stored locally on this device</span>
         <div className="flex gap-4">
           <button
             type="button"
             onClick={openExportCsv}
             className="hover:text-neutral-600 dark:hover:text-neutral-300"
           >
-            {t("downloadCsv")}
+            Download CSV
           </button>
           <button
             type="button"
@@ -516,7 +506,7 @@ export default function Reports() {
             }
             className="hover:text-neutral-600 dark:hover:text-neutral-300"
           >
-            {t("printStatement")}
+            Print statement
           </button>
         </div>
       </footer>
@@ -550,9 +540,9 @@ function CompareBar({
         </span>
       </div>
       <div className="relative h-2 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
-        <div className="absolute inset-y-0 left-0 w-3/5 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+        <div className="absolute inset-y-0 start-0 w-3/5 rounded-full bg-neutral-200 dark:bg-neutral-700" />
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-accent"
+          className="absolute inset-y-0 start-0 rounded-full bg-accent"
           style={{ width: `${width}%` }}
         />
       </div>

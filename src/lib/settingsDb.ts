@@ -17,7 +17,6 @@ export function settingsSnapshotFromStore(): StoredUiSettings {
   const s = useSettings.getState();
   return {
     theme: s.theme,
-    language: s.language,
     baseCurrency: s.baseCurrency,
     weekStartDay: s.weekStartDay,
     defaultView: s.defaultView,
@@ -37,7 +36,6 @@ function applyStoredSettings(data: StoredUiSettings): void {
   skipNextPersist = true;
   const store = useSettings.getState();
   store.setTheme(data.theme);
-  void store.setLanguage(data.language);
   store.setBaseCurrency(data.baseCurrency);
   store.setWeekStartDay(data.weekStartDay);
   store.setDefaultView(data.defaultView as PageId);

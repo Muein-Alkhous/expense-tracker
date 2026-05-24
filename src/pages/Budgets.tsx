@@ -9,7 +9,7 @@ import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { activeExpenses } from "@/lib/expenseFilters";
 import { formatMinor } from "@/lib/money";
 import { useFxRates } from "@/store/fxRates";
-import { filterByPeriod, periodPrintLabel, type PeriodId } from "@/lib/period";
+import { filterByPeriod, periodRange, type PeriodId } from "@/lib/period";
 import { sumCategoryBudgetsMinor, useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses } from "@/store/expenses";
@@ -72,6 +72,10 @@ export default function Budgets() {
   const budgetAlerts = useSettings((s) => s.budgetAlerts);
 
   const [period, setPeriod] = useState<PeriodId>("this_month");
+  const periodMonth = useMemo(() => {
+    const { start } = periodRange(period);
+    return start ? start.format("MMMM") : "";
+  }, [period]);
 
   const monthExpenses = useMemo(
     () => filterByPeriod(expenses, period),
@@ -190,8 +194,7 @@ export default function Budgets() {
 
         <div className="mb-2 flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-300">
           <span>
-            {formatMinor(totalSpent, baseCurrency)} spent of{" "}
-            {formatMinor(totalLimit, baseCurrency)}
+            {formatMinor(totalSpent, baseCurrency)} spent of {formatMinor(totalLimit, baseCurrency)}
           </span>
           <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-50">{totalPct}%</span>
         </div>
@@ -216,15 +219,14 @@ export default function Budgets() {
           {totalState === "exceeded"
             ? `You are over your monthly limit by ${formatMinor(totalSpent - totalLimit, baseCurrency)}.`
             : totalState === "warning"
-            ? `You are approaching your limit. ${formatMinor(totalRemaining, baseCurrency)} remaining for ${periodPrintLabel(period).split(" ")[0]}.`
-            : `${formatMinor(totalRemaining, baseCurrency)} remaining for ${periodPrintLabel(period).split(" ")[0]}.`}
+            ? `You are approaching your limit. ${formatMinor(totalRemaining, baseCurrency)} remaining for ${periodMonth}.`
+            : `${formatMinor(totalRemaining, baseCurrency)} remaining for ${periodMonth}.`}
         </p>
 
         <div className="mt-5 border-t border-neutral-100 pt-4 dark:border-neutral-800">
           <div className="mb-2 flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-300">
             <span>
-              Category budgets: {formatMinor(allocatedMinor, baseCurrency)} allocated of{" "}
-              {formatMinor(totalLimit, baseCurrency)}
+              Category budgets: {formatMinor(allocatedMinor, baseCurrency)} allocated of {formatMinor(totalLimit, baseCurrency)}
             </span>
             <span className="text-xs text-neutral-500 dark:text-neutral-400">
               {formatMinor(unallocatedMinor, baseCurrency)} unallocated
@@ -268,8 +270,7 @@ export default function Budgets() {
 
               <div className="mb-2 flex items-center justify-between text-sm">
                 <span className="text-neutral-600 dark:text-neutral-300">
-                  Spent {formatMinor(spent, baseCurrency)} of{" "}
-                  {formatMinor(b.limitMinor, baseCurrency)}
+                  Spent {formatMinor(spent, baseCurrency)} of {formatMinor(b.limitMinor, baseCurrency)}
                 </span>
                 <span
                   className={
@@ -314,9 +315,12 @@ export default function Budgets() {
             >
               <CategoryIcon name={cat.icon} size={20} />
             </span>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              Set budget for <strong className="text-neutral-900 dark:text-neutral-50">{cat.name}</strong>
-            </p>
+            <p
+              className="text-sm text-neutral-600 dark:text-neutral-300"
+              dangerouslySetInnerHTML={{
+                __html: `Set budget for <strong>${cat.name}</strong>`,
+              }}
+            />
             <button
               type="button"
               onClick={() => openNewBudget(cat.id)}

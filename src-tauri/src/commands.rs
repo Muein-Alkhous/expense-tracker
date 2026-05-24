@@ -175,21 +175,3 @@ pub fn get_insights(db: State<'_, AppDb>, input: GetInsightsInput) -> AppResult<
     db.get_insights(input)
 }
 
-#[tauri::command]
-pub fn pick_backup_folder(default_path: Option<String>) -> AppResult<Option<String>> {
-    let mut dialog = rfd::FileDialog::new().set_title("Choose backup folder");
-    if let Some(path) = default_path.filter(|p| !p.is_empty()) {
-        dialog = dialog.set_directory(path);
-    }
-    Ok(dialog.pick_folder().map(|p| p.to_string_lossy().to_string()))
-}
-
-#[tauri::command]
-pub fn pick_backup_file() -> AppResult<Option<String>> {
-    Ok(rfd::FileDialog::new()
-        .set_title("Choose backup file to restore")
-        .add_filter("JSON backup", &["json"])
-        .add_filter("Encrypted backup", &["enc.json"])
-        .pick_file()
-        .map(|p| p.to_string_lossy().to_string()))
-}

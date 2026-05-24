@@ -1,7 +1,6 @@
 // App shell: persistent sidebar + content area, plus the global Add Expense modal.
 
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import Sidebar from "@/components/Sidebar";
 import { useAutoBackupInterval } from "@/hooks/useAutoBackupInterval";
 import { useDbBootstrap } from "@/hooks/useDbBootstrap";
@@ -19,16 +18,23 @@ import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import { useUi, type PageId } from "@/store/ui";
 
+const PAGE_TITLES: Record<PageId, string> = {
+  dashboard: "Dashboard",
+  expenses: "Expenses",
+  trash: "Trash",
+  categories: "Categories",
+  budgets: "Budgets",
+  reports: "Reports",
+  settings: "Settings",
+};
+
 export default function App() {
   const dbReady = useDbBootstrap();
   useSettingsSync();
   useAutoBackupInterval();
-  const { t } = useTranslation();
   const currentPage = useUi((s) => s.currentPage);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const openAddExpense = useUi((s) => s.openAddExpense);
-
-  const pageTitle = t(`nav.${currentPage}`);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -54,7 +60,7 @@ export default function App() {
       <Sidebar activeId={currentPage} onNavigate={(id) => setCurrentPage(id as PageId)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
-          title={pageTitle}
+          title={PAGE_TITLES[currentPage]}
           showPeriod={currentPage === "dashboard"}
         />
         <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-950">

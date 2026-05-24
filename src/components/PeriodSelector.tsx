@@ -33,6 +33,7 @@ export default function PeriodSelector({
   onChange,
   className = "",
 }: PeriodSelectorProps) {
+  const currentLabel = periodLabel(value);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -54,7 +55,7 @@ export default function PeriodSelector({
         className="inline-flex items-center gap-2 rounded-control border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
       >
         <CalendarIcon />
-        {periodLabel(value)}
+        {currentLabel}
         <svg
           viewBox="0 0 24 24"
           width="14"

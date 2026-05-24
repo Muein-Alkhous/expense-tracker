@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased (0.2.0)
+
+### Changed
+- Removed i18n (English-only UI); language setting dropped from Settings → General
+- Backup folder picker uses async dialog plugin (fixes freeze on “Choose folder”)
+
+### Added
+- Logical CSS layout properties (`text-start`, `ps-*`, `start-0`) retained from layout pass
+
 ## 0.1.0 — 2026-05-23
 
 ### Added

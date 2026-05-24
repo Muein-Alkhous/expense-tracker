@@ -23,7 +23,6 @@ function seedPayloadFromSettings(): AppBackupPayload {
   const s = useSettings.getState();
   return buildSeedPayload({
     theme: s.theme,
-    language: s.language,
     baseCurrency: s.baseCurrency,
     weekStartDay: s.weekStartDay,
     defaultView: s.defaultView,
@@ -82,7 +81,6 @@ function buildPayloadFromLocalStorage(): AppBackupPayload | null {
     fx_rates: fxState?.rates ?? [],
     settings: {
       theme: (settingsState?.theme as typeof s.theme) ?? s.theme,
-      language: (settingsState?.language as string) ?? s.language,
       baseCurrency: (settingsState?.baseCurrency as string) ?? s.baseCurrency,
       weekStartDay: (settingsState?.weekStartDay as number) ?? s.weekStartDay,
       defaultView: (settingsState?.defaultView as typeof s.defaultView) ?? s.defaultView,

@@ -6,6 +6,14 @@ import { getCategory, useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 import type { Expense } from "@/types";
 
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: "Cash",
+  card: "Card",
+  bank: "Bank",
+  transfer: "Transfer",
+  other: "Other",
+};
+
 interface ExpenseRowProps {
   expense: Expense;
 }
@@ -15,10 +23,17 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
   const deleteExpense = useExpenses((s) => s.deleteExpense);
   const openEditExpense = useUi((s) => s.openEditExpense);
 
+  const paymentKey = expense.payment_method ?? "";
+  const paymentLabel = paymentKey
+    ? (PAYMENT_LABELS[paymentKey] ?? expense.payment_method ?? "—")
+    : "—";
+
   function handleDelete() {
-    const label = expense.note?.trim() || expense.category_id || "this expense";
+    const label = expense.note?.trim() || category?.name || "this expense";
     if (
-      !window.confirm(`Delete expense "${label.slice(0, 60)}${label.length > 60 ? "…" : ""}"?`)
+      !window.confirm(
+        `Delete expense "${`${label.slice(0, 60)}${label.length > 60 ? "…" : ""}`}"?`,
+      )
     ) {
       return;
     }
@@ -45,12 +60,12 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
         {expense.note ?? "—"}
       </td>
       <td className="px-4 py-3 text-sm capitalize text-neutral-600 dark:text-neutral-400">
-        {expense.payment_method ?? "—"}
+        {paymentLabel}
       </td>
-      <td className="px-4 py-3 text-right text-sm font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
+      <td className="px-4 py-3 text-end text-sm font-medium tabular-nums text-neutral-900 dark:text-neutral-50">
         {formatMinor(expense.amount_minor, expense.currency_code)}
       </td>
-      <td className="px-2 py-3 text-right">
+      <td className="px-2 py-3 text-end">
         <div className="flex items-center justify-end gap-1">
           <button
             type="button"

@@ -16,26 +16,38 @@ import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 import { activeExpenses } from "@/lib/expenseFilters";
 
-const PERIODS: { id: ExportPeriod; label: string }[] = [
-  { id: "this_month", label: "This month" },
-  { id: "last_month", label: "Last month" },
-  { id: "last_30", label: "Last 30 days" },
-  { id: "all", label: "All time" },
+const PERIOD_IDS: ExportPeriod[] = ["this_month", "last_month", "last_30", "all"];
+
+const PERIOD_LABELS: Record<ExportPeriod, string> = {
+  this_month: "This month",
+  last_month: "Last month",
+  last_30: "Last 30 days",
+  all: "All time",
+};
+
+const COLUMN_KEYS: (keyof ExportColumnFlags)[] = [
+  "date",
+  "amount",
+  "currency",
+  "category",
+  "note",
+  "payment",
+  "tags",
 ];
 
-const COLUMN_OPTIONS: { key: keyof ExportColumnFlags; label: string }[] = [
-  { key: "date", label: "Date" },
-  { key: "amount", label: "Amount" },
-  { key: "currency", label: "Currency" },
-  { key: "category", label: "Category" },
-  { key: "note", label: "Note" },
-  { key: "payment", label: "Payment method" },
-  { key: "tags", label: "Tags" },
-];
+const COLUMN_LABELS: Record<keyof ExportColumnFlags, string> = {
+  date: "Date",
+  amount: "Amount",
+  currency: "Currency",
+  category: "Category",
+  note: "Note",
+  payment: "Payment method",
+  tags: "Tags",
+};
 
 function periodButtonClass(selected: boolean): string {
   const base =
-    "rounded-control border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900";
+    "rounded-control border px-3 py-2 text-start text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900";
   if (selected) {
     return (
       base +
@@ -111,6 +123,11 @@ export default function ExportCsvModal() {
     close();
   }
 
+  const exportCountLabel =
+    filteredCount === 0
+      ? "No transactions in this range."
+      : `${filteredCount} transaction${filteredCount === 1 ? "" : "s"} will be exported.`;
+
   return (
     <Modal
       open={open}
@@ -139,24 +156,22 @@ export default function ExportCsvModal() {
             Date range
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {PERIODS.map((p) => (
+            {PERIOD_IDS.map((id) => (
               <button
-                key={p.id}
+                key={id}
                 type="button"
                 onClick={() => {
-                  setPeriod(p.id);
+                  setPeriod(id);
                   setError(null);
                 }}
-                className={periodButtonClass(period === p.id)}
+                className={periodButtonClass(period === id)}
               >
-                {p.label}
+                {PERIOD_LABELS[id]}
               </button>
             ))}
           </div>
           <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-            {filteredCount === 0
-              ? "No transactions in this range."
-              : `${filteredCount} transaction${filteredCount === 1 ? "" : "s"} will be exported.`}
+            {exportCountLabel}
           </p>
         </div>
 
@@ -165,7 +180,7 @@ export default function ExportCsvModal() {
             Columns
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {COLUMN_OPTIONS.map(({ key, label }) => (
+            {COLUMN_KEYS.map((key) => (
               <label key={key} className={columnLabelClass(columns[key])}>
                 <input
                   type="checkbox"
@@ -173,7 +188,7 @@ export default function ExportCsvModal() {
                   onChange={() => toggleColumn(key)}
                   className="h-4 w-4 rounded border-neutral-300 text-accent focus:ring-accent dark:border-neutral-500 dark:bg-neutral-900 dark:checked:border-indigo-400 dark:checked:bg-indigo-500"
                 />
-                <span className="select-none">{label}</span>
+                <span className="select-none">{COLUMN_LABELS[key]}</span>
               </label>
             ))}
           </div>

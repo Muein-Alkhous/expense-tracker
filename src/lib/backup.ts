@@ -26,7 +26,6 @@ export interface AppBackupPayload {
   fx_rates?: FxRate[];
   settings: {
     theme: ThemeMode;
-    language: string;
     baseCurrency: string;
     weekStartDay: number;
     defaultView: PageId;
@@ -61,7 +60,6 @@ export function buildBackupPayload(): AppBackupPayload {
     fx_rates: useFxRates.getState().rates,
     settings: {
       theme: s.theme,
-      language: s.language,
       baseCurrency: s.baseCurrency,
       weekStartDay: s.weekStartDay,
       defaultView: s.defaultView,
@@ -197,7 +195,6 @@ export async function restoreBackupPayload(payload: AppBackupPayload): Promise<v
   const s = payload.settings;
   const settings = useSettings.getState();
   settings.setTheme(s.theme);
-  await settings.setLanguage(s.language);
   settings.setBaseCurrency(s.baseCurrency);
   settings.setWeekStartDay(s.weekStartDay);
   settings.setDefaultView(s.defaultView);

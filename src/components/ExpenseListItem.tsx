@@ -8,6 +8,14 @@ import { useFxRates } from "@/store/fxRates";
 import { useUi } from "@/store/ui";
 import type { Expense } from "@/types";
 
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: "Cash",
+  card: "Card",
+  bank: "Bank",
+  transfer: "Transfer",
+  other: "Other",
+};
+
 interface ExpenseListItemProps {
   expense: Expense;
   baseCurrency: string;
@@ -24,7 +32,9 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
   function handleDelete() {
     const label = expense.note?.trim() || category?.name || "this expense";
     if (
-      !window.confirm(`Delete expense "${label.slice(0, 60)}${label.length > 60 ? "…" : ""}"?`)
+      !window.confirm(
+        `Delete expense "${`${label.slice(0, 60)}${label.length > 60 ? "…" : ""}`}"?`,
+      )
     ) {
       return;
     }
@@ -44,8 +54,12 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
       <div className="col-span-4 truncate text-neutral-700 dark:text-neutral-300">
         {expense.note ?? <span className="italic text-neutral-400">No note</span>}
       </div>
-      <div className="col-span-2 capitalize text-neutral-500">{expense.payment_method ?? "—"}</div>
-      <div className="col-span-2 text-right tabular-nums">
+      <div className="col-span-2 capitalize text-neutral-500">
+        {expense.payment_method
+          ? (PAYMENT_LABELS[expense.payment_method] ?? expense.payment_method)
+          : "—"}
+      </div>
+      <div className="col-span-2 text-end tabular-nums">
         <div className="font-medium text-neutral-900 dark:text-neutral-50">
           {formatMinor(expense.amount_minor, expense.currency_code)}
         </div>

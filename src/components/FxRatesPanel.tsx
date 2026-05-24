@@ -64,7 +64,7 @@ export default function FxRatesPanel() {
         setStatus(`Updated ${added} bidirectional pair(s) from ECB feed.${skipNote}`);
       }
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Fetch failed.");
+      setStatus(e instanceof Error ? e.message : "Could not fetch rates.");
     } finally {
       setBusy(false);
     }
@@ -87,11 +87,12 @@ export default function FxRatesPanel() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Expenses keep their original currency. Totals and charts convert to{" "}
-        <strong className="text-neutral-800 dark:text-neutral-200">{baseCurrency}</strong>{" "}
-        using the rate on or before each expense date.
-      </p>
+      <p
+        className="text-sm text-neutral-600 dark:text-neutral-400"
+        dangerouslySetInnerHTML={{
+          __html: `Expenses keep their original currency. Totals and charts convert to <strong>${baseCurrency}</strong> using the rate on or before each expense date.`,
+        }}
+      />
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="ghost" onClick={() => seedDefaultsIfEmpty()}>
@@ -116,10 +117,12 @@ export default function FxRatesPanel() {
         />
       </div>
 
-      <p className="text-xs text-neutral-500 dark:text-neutral-500">
-        CSV columns: <code className="text-neutral-700 dark:text-neutral-300">from,to,rate,date</code>{" "}
-        (date optional). Example: <code className="text-neutral-700 dark:text-neutral-300">EUR,USD,1.08,2026-05-19</code>
-      </p>
+      <p
+        className="text-xs text-neutral-500 dark:text-neutral-500"
+        dangerouslySetInnerHTML={{
+          __html: 'CSV columns: <code>from,to,rate,date</code> (date optional). Example: <code>EUR,USD,1.08,2026-05-19</code>',
+        }}
+      />
 
       <div className="rounded-card border border-neutral-200 p-4 dark:border-neutral-700">
         <p className="mb-3 text-xs font-medium uppercase tracking-wider text-neutral-500">
@@ -172,7 +175,7 @@ export default function FxRatesPanel() {
 
       <div className="max-h-64 overflow-auto rounded-card border border-neutral-200 dark:border-neutral-700">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-neutral-50 text-left text-xs uppercase tracking-wider text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+          <thead className="sticky top-0 bg-neutral-50 text-start text-xs uppercase tracking-wider text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
             <tr>
               <th className="px-3 py-2">Pair</th>
               <th className="px-3 py-2">As of</th>

@@ -43,8 +43,10 @@ export default function Dashboard() {
   const weekStartDay = useSettings((s) => s.weekStartDay);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
   const period = useUi((s) => s.dashboardPeriod);
+  const spentLabel = periodSpentLabel(period);
   const isDark = useDarkMode();
   const fxRates = useFxRates((s) => s.rates);
+  const todayLabel = "Today";
 
   const stats = useMemo(() => {
     const monthExpenses = filterByPeriod(items, period);
@@ -99,23 +101,22 @@ export default function Dashboard() {
     const todayKey = dayjs().format("YYYY-MM-DD");
     return buckets.map((b) => ({
       ...b,
-      label: b.date === todayKey ? "Today" : formatChartDate(b.date),
+      label: b.date === todayKey ? todayLabel : formatChartDate(b.date),
     }));
-  }, [items, period, baseCurrency, fxRates]);
+  }, [items, period, baseCurrency, fxRates, todayLabel]);
 
   return (
     <div className="space-y-6 p-8">
       <FxMissingBanner count={stats.fxSkipped} baseCurrency={baseCurrency} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label={periodSpentLabel(period)}
+          label={spentLabel}
           value={formatMinor(stats.monthTotal, baseCurrency)}
           trend={prevComparison ? formatTrendPct(prevComparison.spendingChangePct) : undefined}
         />
         <KpiCard
           label="Spent this week"
           value={formatMinor(stats.weekTotal, baseCurrency)}
-          
         />
         <KpiCard
           label="Average per day"
@@ -146,10 +147,17 @@ export default function Dashboard() {
               Daily spending trend
             </h2>
             <div className="text-xs text-neutral-500 dark:text-neutral-400">
-              {trendChartCaption(period)}
+              {trendChartCaption(period, "Last 30 days")}
             </div>
           </header>
-          <TrendChart data={trend} baseCurrency={baseCurrency} isDark={isDark} />
+          <TrendChart
+            data={trend}
+            baseCurrency={baseCurrency}
+            isDark={isDark}
+            emptyLabel="No spending in this period."
+            spentLabel="Spent"
+            todayLabel={todayLabel}
+          />
         </section>
 
         <section className="col-span-1 rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 lg:col-span-2">
@@ -204,12 +212,12 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="text-[11px] uppercase tracking-wider text-neutral-500">
-                <th className="px-4 py-2 text-left font-medium">Date</th>
-                <th className="px-4 py-2 text-left font-medium">Category</th>
-                <th className="px-4 py-2 text-left font-medium">Note</th>
-                <th className="px-4 py-2 text-left font-medium">Method</th>
-                <th className="px-4 py-2 text-right font-medium">Amount</th>
-                <th className="px-2 py-2 text-right font-medium">
+                <th className="px-4 py-2 text-start font-medium">Date</th>
+                <th className="px-4 py-2 text-start font-medium">Category</th>
+                <th className="px-4 py-2 text-start font-medium">Note</th>
+                <th className="px-4 py-2 text-start font-medium">Method</th>
+                <th className="px-4 py-2 text-end font-medium">Amount</th>
+                <th className="px-2 py-2 text-end font-medium">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -301,9 +309,9 @@ interface TrendBucket extends TrendBucketRaw {
   label: string;
 }
 
-function trendChartCaption(period: PeriodId): string {
+function trendChartCaption(period: PeriodId, fallback: string): string {
   const { start, end } = periodRange(period);
-  if (!start || !end) return "Last 30 days";
+  if (!start || !end) return fallback;
   const days = end.diff(start, "day") + 1;
   if (days <= 31) return start.format("MMMM YYYY");
   return `${start.format("MMM D")} – ${end.format("MMM D, YYYY")}`;
@@ -363,15 +371,21 @@ function TrendChart({
   data,
   baseCurrency,
   isDark,
+  emptyLabel,
+  spentLabel,
+  todayLabel,
 }: {
   data: TrendBucket[];
   baseCurrency: string;
   isDark: boolean;
+  emptyLabel: string;
+  spentLabel: string;
+  todayLabel: string;
 }) {
   if (data.length === 0) {
     return (
       <div className="flex h-44 items-center justify-center text-sm text-neutral-500 dark:text-neutral-400">
-        No spending in this period
+        {emptyLabel}
       </div>
     );
   }
@@ -411,11 +425,11 @@ function TrendChart({
               color: "#fafafa",
               fontSize: 12,
             }}
-            formatter={(v: number) => [formatMinor(v, baseCurrency), "Spent"]}
+            formatter={(v: number) => [formatMinor(v, baseCurrency), spentLabel]}
             labelFormatter={(_, payload) => {
               const row = payload?.[0]?.payload as TrendBucket | undefined;
               if (!row?.date) return "";
-              if (row.label === "Today") return "Today";
+              if (row.label === todayLabel) return todayLabel;
               return formatDate(row.date, "MMM D, YYYY");
             }}
           />
