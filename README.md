@@ -88,9 +88,9 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds Linux bundles on tag push. Attach artifacts to a GitHub Release manually or via `gh release create`.
+GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds Linux bundles on tag push and publishes a GitHub Release with `.deb` and `.AppImage` assets attached.
 
-See [CHANGELOG.md](CHANGELOG.md) and [docs/SMOKE_TEST.md](docs/SMOKE_TEST.md).
+See [docs/RELEASE.md](docs/RELEASE.md) for manual release steps and [CHANGELOG.md](CHANGELOG.md).
 
 ### App data locations
 

@@ -20,4 +20,4 @@ gh release create v0.1.0 \
   --notes-file CHANGELOG.md
 ```
 
-Run [SMOKE_TEST.md](SMOKE_TEST.md) before publishing.
+Run [SMOKE_TEST.md](SMOKE_TEST.md) before publishing (`bash scripts/smoke-test.sh` for automated checks).
