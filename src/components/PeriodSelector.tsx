@@ -73,7 +73,7 @@ export default function PeriodSelector({
         <ul
           role="listbox"
           aria-label="Period"
-          className="absolute left-0 z-30 mt-1 min-w-[160px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+          className="absolute start-0 z-30 mt-1 min-w-[160px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
         >
           {PERIOD_OPTIONS.map((o) => {
             const active = o.id === value;
@@ -86,7 +86,7 @@ export default function PeriodSelector({
                     setOpen(false);
                   }}
                   className={
-                    "block w-full px-3 py-2 text-left text-sm transition-colors " +
+                    "block w-full px-3 py-2 text-start text-sm transition-colors " +
                     (active
                       ? "bg-accent/10 text-accent"
                       : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800")

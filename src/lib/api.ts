@@ -5,6 +5,7 @@ import type { CategoryBudget } from "@/store/budgets";
 import type { Category, Expense, PaymentMethod } from "@/types";
 import type { FxRate } from "@/types/fx";
 import type { AppBackupPayload } from "@/lib/backup";
+import type { Insight } from "@/types/insight";
 
 export interface NewExpenseInput {
   amount_minor: number;
@@ -48,6 +49,14 @@ export interface BackupFileInfo {
   size_bytes: number;
   modified_at: string;
   encrypted: boolean;
+}
+
+export interface GetInsightsInput {
+  periodStart: string;
+  periodEnd: string;
+  prevStart?: string | null;
+  prevEnd?: string | null;
+  baseCurrency: string;
 }
 
 export interface NewRecurringRuleInput {
@@ -114,4 +123,6 @@ export const api = {
   getUiSettings: () => call<Record<string, unknown> | null>("get_ui_settings"),
   setUiSettings: (settings: Record<string, unknown>) =>
     call<void>("set_ui_settings", { settings }),
+  getInsights: (input: GetInsightsInput) =>
+    call<Insight[]>("get_insights", { input }),
 };

@@ -1,0 +1,31 @@
+{
+  "title": "التقارير",
+  "export": "تصدير",
+  "spendingByCategory": "الإنفاق حسب الفئة",
+  "comparedTo": "مقارنة بـ {{period}}",
+  "previousPeriod": "الفترة السابقة",
+  "spending": "الإنفاق",
+  "avgDailySpend": "متوسط الإنفاق اليومي",
+  "transactionCount": "المعاملات",
+  "spendingUp": "الإنفاق أعلى بنسبة <strong>{{pct}}%</strong> مقارنة بـ {{period}}.",
+  "spendingDown": "أنفقت أقل بنسبة <strong>{{pct}}%</strong> من {{period}}.",
+  "dailyTrend": "اتجاه الإنفاق اليومي",
+  "trailingDays": "نشاط آخر {{days}} يومًا",
+  "categoryComparison": "مقارنة الفئات",
+  "categoryComparisonHint": "الإنفاق مقابل الفترة السابقة؛ يُبرز عند تغيّر ±15٪ أو أكثر.",
+  "colCategory": "الفئة",
+  "colThisPeriod": "هذه الفترة",
+  "colPrevious": "السابقة",
+  "colChange": "التغيّر",
+  "insight": {
+    "tagInsight": "ملاحظة",
+    "tagAlert": "تنبيه",
+    "category_mom_up": "إنفاق {{category}} أعلى بنسبة {{percent}}٪ عن الفترة السابقة",
+    "category_mom_down": "إنفاق {{category}} أقل بنسبة {{percent}}٪ عن الفترة السابقة",
+    "peak_weekday": "{{weekday}} هو أعلى أيام الإنفاق — متوسط {{amountFormatted}}",
+    "budget_warning": "ميزانية {{category}} عند {{percent}}٪ من الحد",
+    "budget_exceeded": "تجاوزت ميزانية {{category}} بمقدار {{overFormatted}}",
+    "category_concentration": "فئتان تمثلان {{percent}}٪ من الإنفاق",
+    "unusual_transaction": "مصروف {{category}} كبير بشكل غير عادي: {{amountFormatted}}"
+  }
+}

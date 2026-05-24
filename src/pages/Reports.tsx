@@ -1,6 +1,6 @@
 // Reports screen: insights, charts, and spending analytics.
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -16,7 +16,10 @@ import {
 } from "recharts";
 import Button from "@/components/ui/Button";
 import FxMissingBanner from "@/components/FxMissingBanner";
+import InsightCards from "@/components/InsightCards";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useInsights } from "@/hooks/useInsights";
+import { useFormatLocale } from "@/hooks/useFormatLocale";
 import { activeExpenses } from "@/lib/expenseFilters";
 import { amountInBase, sumExpensesInBase } from "@/lib/expenseInBase";
 import { formatChartDate, formatDate, toDateKey } from "@/lib/date";
@@ -25,13 +28,13 @@ import {
   filterByRange,
   periodPrintLabel,
   previousPeriodRange,
+  previousPeriodPrintLabel,
   type PeriodId,
 } from "@/lib/period";
 import PeriodSelector from "@/components/PeriodSelector";
 import { formatMinor } from "@/lib/money";
 import { printMonthlyStatement } from "@/lib/printStatement";
 import { CategoryIcon } from "@/lib/categoryIcons";
-import { useBudgets } from "@/store/budgets";
 import { useCategories } from "@/store/categories";
 import { useExpenses, getCategory } from "@/store/expenses";
 import { useFxRates } from "@/store/fxRates";
@@ -39,16 +42,19 @@ import type { FxRate } from "@/types/fx";
 import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
+import { comparePeriods, formatTrendPct } from "@/lib/periodComparison";
 
 type TrendRange = "all" | "60" | "30";
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export default function Reports() {
+  const { t } = useTranslation("reports");
+  const locale = useFormatLocale();
   const rawExpenses = useExpenses((s) => s.items);
   const expenses = useMemo(() => activeExpenses(rawExpenses), [rawExpenses]);
   const categories = useCategories((s) => s.items);
-  const budgetItems = useBudgets((s) => s.items);
   const baseCurrency = useSettings((s) => s.baseCurrency);
   const fxRates = useFxRates((s) => s.rates);
   const setCurrentPage = useUi((s) => s.setCurrentPage);
@@ -57,6 +63,7 @@ export default function Reports() {
   const [trendRange, setTrendRange] = useState<TrendRange>("60");
   const [period, setPeriod] = useState<PeriodId>("this_month");
   const isDark = useDarkMode();
+  const { insights, loading: insightsLoading } = useInsights(period);
 
   const thisMonth = useMemo(
     () => filterByPeriod(expenses, period),
@@ -74,11 +81,6 @@ export default function Reports() {
   );
   const monthTotal = monthSum.totalMinor;
   const fxSkipped = monthSum.skippedCount;
-
-  const lastMonthTotal = useMemo(
-    () => sumExpensesInBase(lastMonth, baseCurrency, fxRates).totalMinor,
-    [lastMonth, baseCurrency, fxRates],
-  );
 
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
@@ -100,102 +102,6 @@ export default function Reports() {
       })
       .sort((a, b) => b.total - a.total);
   }, [thisMonth, categories, monthTotal, baseCurrency, fxRates]);
-
-  const insights = useMemo(() => {
-    const cards: { tag?: string; tagTone?: "insight" | "alert"; text: ReactNode }[] = [];
-
-    const sumCat = (list: typeof thisMonth, catId: string) =>
-      list
-        .filter((e) => e.category_id === catId)
-        .reduce((a, e) => {
-          const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
-          return ok ? a + amountMinor : a;
-        }, 0);
-
-    const foodThis = sumCat(thisMonth, "food");
-    const foodLast = sumCat(lastMonth, "food");
-    if (foodLast > 0) {
-      const change = Math.round(((foodThis - foodLast) / foodLast) * 100);
-      if (change !== 0) {
-        cards.push({
-          tag: "INSIGHT",
-          tagTone: "insight",
-          text: (
-            <>
-              Food spending {change > 0 ? "up" : "down"}{" "}
-              <strong>{Math.abs(change)}%</strong> vs last month
-            </>
-          ),
-        });
-      }
-    }
-
-    const byDay = new Map<number, number[]>();
-    for (const e of thisMonth) {
-      const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
-      if (!ok) continue;
-      const dow = dayjs(e.date).day();
-      const list = byDay.get(dow) ?? [];
-      list.push(amountMinor);
-      byDay.set(dow, list);
-    }
-    let peakDay = 0;
-    let peakAvg = 0;
-    for (const [dow, amounts] of byDay) {
-      const avg = amounts.reduce((a, n) => a + n, 0) / amounts.length;
-      if (avg > peakAvg) {
-        peakAvg = avg;
-        peakDay = dow;
-      }
-    }
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    if (peakAvg > 0) {
-      cards.push({
-        text: (
-          <>
-            {dayNames[peakDay]} is your highest spending day — avg{" "}
-            <strong>{formatMinor(Math.round(peakAvg), baseCurrency)}</strong>
-          </>
-        ),
-      });
-    }
-
-    for (const b of budgetItems) {
-      const spent = thisMonth
-        .filter((e) => e.category_id === b.categoryId)
-        .reduce((a, e) => {
-          const { amountMinor, ok } = amountInBase(e, baseCurrency, fxRates);
-          return ok ? a + amountMinor : a;
-        }, 0);
-      if (spent > b.limitMinor) {
-        const cat = categories.find((c) => c.id === b.categoryId);
-        cards.push({
-          tag: "ALERT",
-          tagTone: "alert",
-          text: (
-            <>
-              You exceeded your <strong>{cat?.name ?? "category"}</strong> budget by{" "}
-              <strong>{formatMinor(spent - b.limitMinor, baseCurrency)}</strong>
-            </>
-          ),
-        });
-        break;
-      }
-    }
-
-    if (byCategory.length >= 2) {
-      const topTwoPct = byCategory[0].pct + byCategory[1].pct;
-      cards.push({
-        text: (
-          <>
-            Two categories make up <strong>{topTwoPct}%</strong> of spend
-          </>
-        ),
-      });
-    }
-
-    return cards.slice(0, 4);
-  }, [thisMonth, lastMonth, budgetItems, categories, byCategory, baseCurrency, fxRates]);
 
   const trendDays = trendRange === "30" ? 30 : trendRange === "60" ? 60 : 90;
   const trendData = useMemo(
@@ -236,11 +142,11 @@ export default function Reports() {
     [thisMonth, baseCurrency, fxRates],
   );
 
-  const spendingChange =
-    lastMonthTotal > 0
-      ? ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100
-      : 0;
-  const savingsChange = -spendingChange * 0.2;
+  const comparison = useMemo(() => {
+    const prev = previousPeriodRange(period);
+    if (!prev) return null;
+    return comparePeriods(thisMonth, lastMonth, baseCurrency, fxRates);
+  }, [period, thisMonth, lastMonth, baseCurrency, fxRates]);
 
   const donutData = byCategory.slice(0, 4);
   const donutOther =
@@ -262,19 +168,15 @@ export default function Reports() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
         <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={openExportCsv}>Export</Button>
+          <Button variant="ghost" onClick={openExportCsv}>{t("export")}</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {insights.map((card, i) => (
-          <InsightCard key={i} {...card} />
-        ))}
-      </div>
+      <InsightCards insights={insights} loading={insightsLoading} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Spending by category</h2>
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("spendingByCategory")}</h2>
           <div className="flex flex-col items-center gap-6 sm:flex-row">
             <div className="h-52 w-52 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -323,41 +225,58 @@ export default function Reports() {
           </div>
         </section>
 
-        <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Compared to last month</h2>
-          <div className="space-y-6">
-            <CompareBar
-              label="SPENDING"
-              change={spendingChange}
-              positiveIsBad
-            />
-            <CompareBar label="SAVINGS" change={savingsChange} positiveIsBad={false} />
-          </div>
-          <p className="mt-6 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
-            {spendingChange > 0 ? (
-              <>
-                Spending is up{" "}
-                <strong className="text-neutral-800 dark:text-neutral-100">{spendingChange.toFixed(1)}%</strong>{" "}
-                compared to last month. Review your top categories to stay on track.
-              </>
-            ) : (
-              <>
-                You spent{" "}
-                <strong className="text-neutral-800 dark:text-neutral-100">
-                  {Math.abs(spendingChange).toFixed(1)}% less
-                </strong>{" "}
-                than last month — nice work keeping costs down.
-              </>
-            )}
-          </p>
-        </section>
+        {comparison && (
+          <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+            <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+              {t("comparedTo", { period: previousPeriodPrintLabel(period) ?? t("previousPeriod") })}
+            </h2>
+            <div className="space-y-6">
+              <CompareBar
+                label={t("spending")}
+                change={comparison.spendingChangePct ?? 0}
+                positiveIsBad
+              />
+              <CompareBar
+                label={t("avgDailySpend")}
+                change={comparison.dailyAvgChangePct ?? 0}
+                positiveIsBad
+              />
+              <CompareBar
+                label={t("transactionCount")}
+                change={comparison.countChangePct ?? 0}
+                positiveIsBad
+              />
+            </div>
+            <p className="mt-6 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+              {(comparison.spendingChangePct ?? 0) > 0 ? (
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: t("spendingUp", {
+                      pct: Math.abs(comparison.spendingChangePct ?? 0).toFixed(1),
+                      period: previousPeriodPrintLabel(period) ?? t("previousPeriod"),
+                    }),
+                  }}
+                />
+              ) : (
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: t("spendingDown", {
+                      pct: Math.abs(comparison.spendingChangePct ?? 0).toFixed(1),
+                      period: previousPeriodPrintLabel(period) ?? t("previousPeriod"),
+                    }),
+                  }}
+                />
+              )}
+            </p>
+          </section>
+        )}
       </div>
 
       <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Daily spending trend</h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Trailing {trendDays} days activity</p>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("dailyTrend")}</h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("trailingDays", { days: trendDays })}</p>
           </div>
           <div className="flex rounded-control border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-950">
             {(["all", "60", "30"] as TrendRange[]).map((r) => (
@@ -430,13 +349,13 @@ export default function Reports() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           <header className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Top transactions</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("topTransactions")}</h2>
             <button
               type="button"
               onClick={() => setCurrentPage("expenses")}
               className="text-xs font-medium text-accent hover:underline"
             >
-              View all
+              {t("viewAll")}
             </button>
           </header>
           <ul>
@@ -454,7 +373,7 @@ export default function Reports() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-neutral-900 dark:text-neutral-50">
-                      {e.note ?? "Expense"}
+                      {e.note ?? t("expenseFallback")}
                     </p>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       {cat?.name} · {formatDate(e.date, "MMM D")}
@@ -481,14 +400,14 @@ export default function Reports() {
             })}
             {topTransactions.length === 0 && (
               <li className="px-6 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                No transactions this month.
+                {t("noTransactions")}
               </li>
             )}
           </ul>
         </section>
 
         <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">Day-of-week pattern</h2>
+          <h2 className="mb-4 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("dowPattern")}</h2>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dowData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -512,24 +431,80 @@ export default function Reports() {
           </div>
           <div className="mt-4 flex justify-center gap-6 text-xs text-neutral-500 dark:text-neutral-400">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Peak day
+              <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> {t("peakDay")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-300 dark:bg-neutral-600" /> Daily average
+              <span className="h-2.5 w-2.5 rounded-sm bg-neutral-300 dark:bg-neutral-600" /> {t("dailyAverage")}
             </span>
           </div>
         </section>
       </div>
 
+      {comparison && (
+        <section className="rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+          <h2 className="mb-2 text-sm font-semibold text-neutral-900 dark:text-neutral-50">{t("categoryComparison")}</h2>
+          <p className="mb-4 text-xs text-neutral-500 dark:text-neutral-400">{t("categoryComparisonHint")}</p>
+          <div className="overflow-auto">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead className="text-xs uppercase tracking-wider text-neutral-500">
+                <tr>
+                  <th className="py-2 text-left">{t("colCategory")}</th>
+                  <th className="py-2 text-right">{t("colThisPeriod")}</th>
+                  <th className="py-2 text-right">{t("colPrevious")}</th>
+                  <th className="py-2 text-right">{t("colChange")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.byCategory.slice(0, 8).map((row) => {
+                  const cat = categories.find((c) => c.id === row.categoryId);
+                  const change = row.changePct;
+                  const highlight = change != null && Math.abs(change) >= 15;
+                  return (
+                    <tr
+                      key={row.categoryId}
+                      className={
+                        "border-t border-neutral-100 dark:border-neutral-800 " +
+                        (highlight ? "bg-amber-50/60 dark:bg-amber-500/10" : "")
+                      }
+                    >
+                      <td className="py-2 text-neutral-700 dark:text-neutral-200">
+                        {cat?.name ?? "—"}
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-neutral-900 dark:text-neutral-50">
+                        {formatMinor(row.currentMinor, baseCurrency, locale)}
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-neutral-600 dark:text-neutral-300">
+                        {formatMinor(row.previousMinor, baseCurrency, locale)}
+                      </td>
+                      <td className="py-2 text-right tabular-nums">
+                        <span
+                          className={
+                            (change ?? 0) >= 0
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-emerald-600 dark:text-emerald-400"
+                          }
+                        >
+                          {formatTrendPct(change).text}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-400 dark:border-neutral-800 dark:text-neutral-500">
-        <span>© {new Date().getFullYear()} Expense Tracker · Data stored locally</span>
+        <span>© {new Date().getFullYear()} Expense Tracker · {t("dataStoredLocally")}</span>
         <div className="flex gap-4">
           <button
             type="button"
             onClick={openExportCsv}
             className="hover:text-neutral-600 dark:hover:text-neutral-300"
           >
-            Download CSV
+            {t("downloadCsv")}
           </button>
           <button
             type="button"
@@ -541,41 +516,11 @@ export default function Reports() {
             }
             className="hover:text-neutral-600 dark:hover:text-neutral-300"
           >
-            Print statement
+            {t("printStatement")}
           </button>
         </div>
       </footer>
     </div>
-  );
-}
-
-function InsightCard({
-  tag,
-  tagTone = "insight",
-  text,
-}: {
-  tag?: string;
-  tagTone?: "insight" | "alert";
-  text: ReactNode;
-}) {
-  return (
-    <article className="rounded-card border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      {tag && (
-        <span
-          className={
-            "mb-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
-            (tagTone === "alert"
-              ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
-              : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200")
-          }
-        >
-          {tag}
-        </span>
-      )}
-      <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 [&_strong]:text-neutral-900 dark:[&_strong]:text-neutral-100">
-        {text}
-      </p>
-    </article>
   );
 }
 

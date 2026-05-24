@@ -61,7 +61,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
               }
             >
               <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
-              <span className="flex-1 text-left">{t(item.labelKey)}</span>
+              <span className="flex-1 text-start">{t(item.labelKey)}</span>
               {item.id === "trash" && deletedCount > 0 && (
                 <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">
                   {deletedCount}

@@ -4,6 +4,7 @@ mod backup;
 mod commands;
 mod db;
 mod error;
+mod fx_convert;
 mod insights;
 mod models;
 
@@ -52,6 +53,7 @@ pub fn run() {
             commands::set_ui_settings,
             commands::pick_backup_folder,
             commands::pick_backup_file,
+            commands::get_insights,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -130,3 +130,12 @@ export function periodPrintLabel(period: PeriodId): string {
   }
   return "All time";
 }
+
+export function previousPeriodPrintLabel(period: PeriodId): string | null {
+  const prev = previousPeriodRange(period);
+  if (!prev) return null;
+  if (prev.start.isSame(prev.end, "month")) {
+    return prev.start.format("MMMM YYYY");
+  }
+  return `${prev.start.format("MMM YYYY")} – ${prev.end.format("MMM YYYY")}`;
+}

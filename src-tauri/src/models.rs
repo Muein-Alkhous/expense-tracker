@@ -152,3 +152,30 @@ pub struct BackupFileInfo {
     pub modified_at: String,
     pub encrypted: bool,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InsightKind {
+    Insight,
+    Alert,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Insight {
+    pub id: String,
+    pub kind: InsightKind,
+    pub rule: String,
+    pub message_key: String,
+    pub params: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetInsightsInput {
+    pub period_start: String,
+    pub period_end: String,
+    pub prev_start: Option<String>,
+    pub prev_end: Option<String>,
+    pub base_currency: String,
+}

@@ -39,7 +39,7 @@ export default function FilterDropdown({ value, options, onChange }: FilterDropd
         </svg>
       </button>
       {open && (
-        <div className="absolute right-0 z-30 mt-1 min-w-[160px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="absolute end-0 z-30 mt-1 min-w-[160px] overflow-hidden rounded-control border border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
           {options.map((o) => {
             const active = o.id === value;
             return (
@@ -51,7 +51,7 @@ export default function FilterDropdown({ value, options, onChange }: FilterDropd
                   setOpen(false);
                 }}
                 className={
-                  "block w-full px-3 py-2 text-left text-sm transition-colors " +
+                  "block w-full px-3 py-2 text-start text-sm transition-colors " +
                   (active
                     ? "bg-accent/10 text-accent"
                     : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800")

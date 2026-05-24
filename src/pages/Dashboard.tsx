@@ -31,6 +31,8 @@ import { useExpenses } from "@/store/expenses";
 import { useUi } from "@/store/ui";
 import { useBudgets } from "@/store/budgets";
 import { useSettings } from "@/store/settings";
+import { comparePeriods, formatTrendPct } from "@/lib/periodComparison";
+import { filterByRange, previousPeriodRange } from "@/lib/period";
 
 export default function Dashboard() {
   const rawItems = useExpenses((s) => s.items);
@@ -85,6 +87,13 @@ export default function Dashboard() {
     };
   }, [items, categories, weekStartDay, period, baseCurrency, fxRates]);
 
+  const prevComparison = useMemo(() => {
+    const prev = previousPeriodRange(period);
+    if (!prev) return null;
+    const prevExpenses = filterByRange(items, prev.start, prev.end);
+    return comparePeriods(stats.monthExpenses, prevExpenses, baseCurrency, fxRates);
+  }, [items, period, stats.monthExpenses, baseCurrency, fxRates]);
+
   const trend = useMemo(() => {
     const buckets = buildDailyTrendForPeriod(items, period, baseCurrency, fxRates);
     const todayKey = dayjs().format("YYYY-MM-DD");
@@ -101,7 +110,7 @@ export default function Dashboard() {
         <KpiCard
           label={periodSpentLabel(period)}
           value={formatMinor(stats.monthTotal, baseCurrency)}
-          trend={{ sign: "up", text: "+12%" }}
+          trend={prevComparison ? formatTrendPct(prevComparison.spendingChangePct) : undefined}
         />
         <KpiCard
           label="Spent this week"
@@ -111,7 +120,7 @@ export default function Dashboard() {
         <KpiCard
           label="Average per day"
           value={formatMinor(stats.dailyAvg, baseCurrency)}
-          trend={{ sign: "down", text: "-5%" }}
+          trend={prevComparison ? formatTrendPct(prevComparison.dailyAvgChangePct) : undefined}
         />
         <KpiCard
           label="Top category"

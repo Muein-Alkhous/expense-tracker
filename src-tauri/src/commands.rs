@@ -6,8 +6,8 @@ use crate::db::AppDb;
 use crate::error::AppResult;
 use crate::models::{
     AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, DbCounts, Expense, FxRate,
-    MaterializeRecurringResult, NewCategoryInput, NewExpenseInput, NewFxRateInput,
-    NewRecurringRuleInput, RecurringRule,
+    GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput, NewExpenseInput,
+    NewFxRateInput, NewRecurringRuleInput, RecurringRule,
 };
 
 #[tauri::command]
@@ -168,6 +168,11 @@ pub fn get_ui_settings(db: State<'_, AppDb>) -> AppResult<Option<serde_json::Val
 #[tauri::command]
 pub fn set_ui_settings(db: State<'_, AppDb>, settings: serde_json::Value) -> AppResult<()> {
     db.set_ui_settings(&settings)
+}
+
+#[tauri::command]
+pub fn get_insights(db: State<'_, AppDb>, input: GetInsightsInput) -> AppResult<Vec<Insight>> {
+    db.get_insights(input)
 }
 
 #[tauri::command]

@@ -11,9 +11,8 @@ use uuid::Uuid;
 use crate::error::{AppError, AppResult};
 use crate::models::{
     AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, CategoryBudgetRow, DbCounts,
-    Expense,
-    FxRate, MaterializeRecurringResult, NewCategoryInput, NewExpenseInput, NewFxRateInput,
-    NewRecurringRuleInput, RecurringRule,
+    Expense, FxRate, GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput,
+    NewExpenseInput, NewFxRateInput, NewRecurringRuleInput, RecurringRule,
 };
 
 pub struct AppDb {
@@ -772,6 +771,24 @@ impl AppDb {
             )?;
             Ok(())
         })
+    }
+
+    pub fn get_insights(&self, input: GetInsightsInput) -> AppResult<Vec<Insight>> {
+        let expenses = self.list_expenses()?;
+        let categories = self.list_categories()?;
+        let budgets = self.get_budgets()?;
+        let fx_rates = self.list_fx_rates()?;
+        Ok(crate::insights::compute_insights(
+            &expenses,
+            &categories,
+            &budgets.items,
+            &fx_rates,
+            &input.base_currency,
+            &input.period_start,
+            &input.period_end,
+            input.prev_start.as_deref(),
+            input.prev_end.as_deref(),
+        ))
     }
 }
 
