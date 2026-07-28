@@ -6,9 +6,7 @@ use chrono::{Datelike, NaiveDate, Utc};
 use uuid::Uuid;
 
 use crate::fx_convert::amount_in_base;
-use crate::models::{
-    Category, CategoryBudgetRow, Expense, FxRate, Insight, InsightKind,
-};
+use crate::models::{Category, CategoryBudgetRow, Expense, FxRate, Insight, InsightKind};
 
 fn date_in_range(date: &str, start: &str, end: &str) -> bool {
     let d = date_key(date);
@@ -106,12 +104,7 @@ fn median(mut values: Vec<i64>) -> i64 {
     }
 }
 
-fn insight(
-    kind: InsightKind,
-    rule: &str,
-    message_key: &str,
-    params: serde_json::Value,
-) -> Insight {
+fn insight(kind: InsightKind, rule: &str, message_key: &str, params: serde_json::Value) -> Insight {
     Insight {
         id: Uuid::new_v4().to_string(),
         kind,
@@ -121,6 +114,7 @@ fn insight(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn compute_insights(
     all_expenses: &[Expense],
     categories: &[Category],
@@ -304,11 +298,8 @@ pub fn compute_insights(
             };
             *by_cat.entry(&e.category_id).or_insert(0) += amt;
         }
-        let mut ranked: Vec<(i64, &str)> = by_cat
-            .into_iter()
-            .map(|(id, t)| (t, id))
-            .collect();
-        ranked.sort_by(|a, b| b.0.cmp(&a.0));
+        let mut ranked: Vec<(i64, &str)> = by_cat.into_iter().map(|(id, t)| (t, id)).collect();
+        ranked.sort_by_key(|item| std::cmp::Reverse(item.0));
         if ranked.len() >= 2 {
             let top_two: i64 = ranked[0].0 + ranked[1].0;
             let pct = (top_two as f64 / total as f64 * 100.0).round() as i64;
@@ -348,10 +339,7 @@ pub fn compute_insights(
         } else {
             continue;
         };
-        by_cat_amounts
-            .entry(&e.category_id)
-            .or_default()
-            .push(amt);
+        by_cat_amounts.entry(&e.category_id).or_default().push(amt);
     }
 
     for e in &current {

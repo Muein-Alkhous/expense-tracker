@@ -163,10 +163,14 @@ export async function saveAutoBackupIfDue(): Promise<string | null> {
         : now - last >= 30 * dayMs;
 
   if (last > 0 && !due) return null;
-  if (s.encryptBackups) return null;
-
   const payload = buildBackupPayload();
-  const path = await saveBackupToConfiguredFolder(s.backupPath, payload, false);
+  const path = await saveBackupToConfiguredFolder(
+    s.backupPath,
+    payload,
+    false,
+    undefined,
+    "automatic",
+  );
   s.setLastBackupAt(new Date().toISOString());
   return path;
 }

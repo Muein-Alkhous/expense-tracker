@@ -215,9 +215,10 @@ pub struct BackupInspection {
     pub encrypted: bool,
     pub manifest: BackupManifest,
     pub integrity_ok: bool,
+    pub warnings: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RestoreMode {
     DryRun,
@@ -231,6 +232,8 @@ pub struct RestoreSummary {
     pub mode: RestoreMode,
     pub added: BTreeMap<String, i64>,
     pub skipped: BTreeMap<String, i64>,
+    pub conflicts: BTreeMap<String, i64>,
+    pub warnings: Vec<String>,
     pub safety_backup_path: Option<String>,
     pub restart_required: bool,
 }

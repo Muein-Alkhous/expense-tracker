@@ -19,7 +19,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let db = AppDb::open(&app.handle())?;
+            let db = AppDb::open(app.handle())?;
             app.manage(db);
             Ok(())
         })
@@ -52,9 +52,11 @@ pub fn run() {
             commands::delete_recurring_rule,
             commands::materialize_recurring_due,
             commands::import_backup,
-            commands::save_backup_to_disk,
             commands::list_backups,
-            commands::read_backup_file,
+            commands::create_etbackup,
+            commands::inspect_etbackup,
+            commands::restore_etbackup,
+            commands::import_legacy_backup_file,
             commands::get_ui_settings,
             commands::set_ui_settings,
             commands::get_insights,

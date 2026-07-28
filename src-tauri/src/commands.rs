@@ -5,9 +5,10 @@ use tauri::State;
 use crate::db::AppDb;
 use crate::error::AppResult;
 use crate::models::{
-    AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, DbCounts, Expense, FxRate,
-    GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput, NewExpenseInput,
-    NewFxRateInput, NewRecurringRuleInput, ReceiptAttachment, RecurringRule, TrashSnapshot,
+    AppBackupPayload, BackupFileInfo, BackupInspection, BudgetsSnapshot, Category, DbCounts,
+    Expense, FxRate, GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput,
+    NewExpenseInput, NewFxRateInput, NewRecurringRuleInput, ReceiptAttachment, RecurringRule,
+    RestoreMode, RestoreSummary, TrashSnapshot,
 };
 
 #[tauri::command]
@@ -165,24 +166,52 @@ pub fn import_backup(db: State<'_, AppDb>, payload: AppBackupPayload) -> AppResu
 }
 
 #[tauri::command]
-pub fn save_backup_to_disk(
+pub fn list_backups(backup_path: String) -> AppResult<Vec<BackupFileInfo>> {
+    crate::backup::list_archives(&backup_path)
+}
+
+#[tauri::command]
+pub fn create_etbackup(
     db: State<'_, AppDb>,
     backup_path: String,
-    json: String,
-    file_extension: Option<String>,
-) -> AppResult<String> {
-    let ext = file_extension.unwrap_or_else(|| "json".to_string());
-    db.save_backup_file(&backup_path, &json, &ext)
+    password: Option<String>,
+    backup_kind: Option<String>,
+) -> AppResult<BackupFileInfo> {
+    crate::backup::create_archive(
+        &db,
+        &backup_path,
+        password.as_deref(),
+        backup_kind.as_deref().unwrap_or("manual"),
+    )
 }
 
 #[tauri::command]
-pub fn list_backups(db: State<'_, AppDb>, backup_path: String) -> AppResult<Vec<BackupFileInfo>> {
-    db.list_backups(&backup_path)
+pub fn inspect_etbackup(
+    db: State<'_, AppDb>,
+    file_path: String,
+    password: Option<String>,
+) -> AppResult<BackupInspection> {
+    crate::backup::inspect_archive(&db, &file_path, password.as_deref())
 }
 
 #[tauri::command]
-pub fn read_backup_file(db: State<'_, AppDb>, file_path: String) -> AppResult<String> {
-    db.read_backup_file(&file_path)
+pub fn restore_etbackup(
+    db: State<'_, AppDb>,
+    file_path: String,
+    password: Option<String>,
+    mode: RestoreMode,
+    backup_path: String,
+) -> AppResult<RestoreSummary> {
+    crate::backup::restore_archive(&db, &file_path, password.as_deref(), mode, &backup_path)
+}
+
+#[tauri::command]
+pub fn import_legacy_backup_file(
+    db: State<'_, AppDb>,
+    file_path: String,
+    password: Option<String>,
+) -> AppResult<()> {
+    crate::backup::import_legacy_file(&db, &file_path, password.as_deref())
 }
 
 #[tauri::command]

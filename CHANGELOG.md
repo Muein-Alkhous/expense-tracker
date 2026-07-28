@@ -5,9 +5,17 @@
 ### Changed
 - Removed i18n (English-only UI); language setting dropped from Settings → General
 - Backup folder picker uses async dialog plugin (fixes freeze on “Choose folder”)
+- Desktop backup and restore now use complete `.etbackup` archives instead of frontend-generated JSON files
+- Restore always validates and performs a read-only dry run before Merge or staged Replace
+- Automatic backups are explicitly unencrypted and retain the newest 10 automatic archives
 
 ### Added
 - Logical CSS layout properties (`text-start`, `ps-*`, `start-0`) retained from layout pass
+- SQLite snapshots, receipt packaging, versioned manifests, and SHA-256 artifact verification
+- Optional Argon2id + AES-256-GCM encryption for manual backups
+- Merge restore with conflict reporting and full replacement with a safety archive, restart staging, and rollback
+- Restricted legacy JSON import without exposing arbitrary file contents to the frontend
+- Rust coverage for archive/receipt round trips, tampering, passwords, merge, dry run, and staged replacement
 
 ## 0.1.0 — 2026-05-23
 

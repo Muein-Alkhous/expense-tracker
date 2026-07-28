@@ -1,5 +1,7 @@
 # Expense Tracker — Project Status and Structure Review
 
+> **2026-07-28 update:** This review is a historical snapshot. The application is now versioned as 0.2.0, normalized Trash and receipt support have been implemented, and the secure `.etbackup` archive/dry-run/merge/staged-replace workflow is now in the codebase. Fresh Linux `.deb`, `.rpm`, and `.AppImage` packages were built, checksummed, and the AppImage passed an isolated clean-profile startup/schema smoke test. See `DESKTOP_COMPLETION_PLAN.md`, `SMOKE_TEST.md`, and `CHANGELOG.md` for current status.
+
 **Review date:** 2026-07-27  
 **Reviewed branch:** `main` at `d5bd068`  
 **Specification:** [`expense_tracker_spec_roadmap.md`](../expense_tracker_spec_roadmap.md)

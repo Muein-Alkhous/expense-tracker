@@ -51,6 +51,44 @@ export interface BackupFileInfo {
   encrypted: boolean;
 }
 
+export interface BackupArtifact {
+  path: string;
+  sizeBytes: number;
+  sha256: string;
+}
+
+export interface BackupManifest {
+  formatVersion: number;
+  appVersion: string;
+  schemaVersion: number;
+  createdAt: string;
+  backupKind: "manual" | "automatic" | "safety";
+  baseCurrency: string;
+  encrypted: boolean;
+  recordCounts: Record<string, number>;
+  artifacts: BackupArtifact[];
+}
+
+export interface BackupInspection {
+  fileName: string;
+  encrypted: boolean;
+  manifest: BackupManifest;
+  integrityOk: boolean;
+  warnings: string[];
+}
+
+export type RestoreMode = "dryrun" | "merge" | "replace";
+
+export interface RestoreSummary {
+  mode: RestoreMode;
+  added: Record<string, number>;
+  skipped: Record<string, number>;
+  conflicts: Record<string, number>;
+  warnings: string[];
+  safetyBackupPath?: string | null;
+  restartRequired: boolean;
+}
+
 export interface Budget {
   id: string;
   category_id?: string | null;
@@ -147,14 +185,33 @@ export const api = {
   materializeRecurringDue: () =>
     call<{ created: number }>("materialize_recurring_due"),
   importBackup: (payload: AppBackupPayload) => call<void>("import_backup", { payload }),
-  saveBackupToDisk: (backupPath: string, content: string, fileExtension = "json") =>
-    call<string>("save_backup_to_disk", {
-      backupPath,
-      json: content,
-      fileExtension,
-    }),
   listBackups: (backupPath: string) => call<BackupFileInfo[]>("list_backups", { backupPath }),
-  readBackupFile: (filePath: string) => call<string>("read_backup_file", { filePath }),
+  createEtbackup: (
+    backupPath: string,
+    password?: string,
+    backupKind: "manual" | "automatic" | "safety" = "manual",
+  ) =>
+    call<BackupFileInfo>("create_etbackup", {
+      backupPath,
+      password,
+      backupKind,
+    }),
+  inspectEtbackup: (filePath: string, password?: string) =>
+    call<BackupInspection>("inspect_etbackup", { filePath, password }),
+  restoreEtbackup: (
+    filePath: string,
+    mode: RestoreMode,
+    backupPath: string,
+    password?: string,
+  ) =>
+    call<RestoreSummary>("restore_etbackup", {
+      filePath,
+      password,
+      mode,
+      backupPath,
+    }),
+  importLegacyBackupFile: (filePath: string, password?: string) =>
+    call<void>("import_legacy_backup_file", { filePath, password }),
   getUiSettings: () => call<Record<string, unknown> | null>("get_ui_settings"),
   setUiSettings: (settings: Record<string, unknown>) =>
     call<void>("set_ui_settings", { settings }),

@@ -13,7 +13,13 @@ fn date_key(date: &str) -> &str {
     date.get(..10).unwrap_or(date)
 }
 
-pub fn find_fx_rate(rates: &[FxRate], from: &str, to: &str, date: &str, allow_cross: bool) -> Option<f64> {
+pub fn find_fx_rate(
+    rates: &[FxRate],
+    from: &str,
+    to: &str,
+    date: &str,
+    allow_cross: bool,
+) -> Option<f64> {
     if from == to {
         return Some(1.0);
     }
@@ -25,15 +31,21 @@ pub fn find_fx_rate(rates: &[FxRate], from: &str, to: &str, date: &str, allow_cr
         if r.as_of_date.as_str() > date_key {
             continue;
         }
-        if r.from_code == from && r.to_code == to {
-            if best_direct.map(|b| r.as_of_date > b.as_of_date).unwrap_or(true) {
-                best_direct = Some(r);
-            }
+        if r.from_code == from
+            && r.to_code == to
+            && best_direct
+                .map(|b| r.as_of_date > b.as_of_date)
+                .unwrap_or(true)
+        {
+            best_direct = Some(r);
         }
-        if r.from_code == to && r.to_code == from {
-            if best_inverse.map(|b| r.as_of_date > b.as_of_date).unwrap_or(true) {
-                best_inverse = Some(r);
-            }
+        if r.from_code == to
+            && r.to_code == from
+            && best_inverse
+                .map(|b| r.as_of_date > b.as_of_date)
+                .unwrap_or(true)
+        {
+            best_inverse = Some(r);
         }
     }
 

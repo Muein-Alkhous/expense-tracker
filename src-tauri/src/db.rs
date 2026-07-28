@@ -12,16 +12,15 @@ use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    AppBackupPayload, BackupFileInfo, Budget, BudgetsSnapshot, Category, CategoryBudgetRow,
-    DbCounts, Expense, FxRate, GetInsightsInput, Insight, MaterializeRecurringResult,
-    NewCategoryInput, NewExpenseInput, NewFxRateInput, NewRecurringRuleInput, ReceiptAttachment,
-    RecurringRule, TrashSnapshot,
+    AppBackupPayload, Budget, BudgetsSnapshot, Category, CategoryBudgetRow, DbCounts, Expense,
+    FxRate, GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput,
+    NewExpenseInput, NewFxRateInput, NewRecurringRuleInput, ReceiptAttachment, RecurringRule,
+    TrashSnapshot,
 };
 
 pub struct AppDb {
     conn: Mutex<Connection>,
     data_dir: PathBuf,
-    db_path: PathBuf,
 }
 
 const MIGRATIONS: &[(&str, i32)] = &[
@@ -163,7 +162,12 @@ impl AppDb {
             .path()
             .app_data_dir()
             .map_err(|e| AppError::Message(e.to_string()))?;
+        Self::open_in_directory(dir)
+    }
+
+    pub(crate) fn open_in_directory(dir: PathBuf) -> AppResult<Self> {
         std::fs::create_dir_all(&dir)?;
+        crate::backup::apply_pending_restore(&dir)?;
         let path = dir.join("expense_tracker.db");
         let existed = path.exists();
         let mut conn = Connection::open(&path)?;
@@ -172,7 +176,6 @@ impl AppDb {
         let db = Self {
             conn: Mutex::new(conn),
             data_dir: dir,
-            db_path: path,
         };
         db.purge_expired_trash(30)?;
         Ok(db)
@@ -1025,10 +1028,6 @@ impl AppDb {
         &self.data_dir
     }
 
-    pub(crate) fn db_path(&self) -> &std::path::Path {
-        &self.db_path
-    }
-
     pub(crate) fn snapshot_to(&self, destination: &std::path::Path) -> AppResult<()> {
         if let Some(parent) = destination.parent() {
             std::fs::create_dir_all(parent)?;
@@ -1042,19 +1041,6 @@ impl AppDb {
             backup.run_to_completion(10, std::time::Duration::from_millis(10), None)?;
             Ok(())
         })
-    }
-
-    pub(crate) fn restore_from_snapshot(&self, source_path: &std::path::Path) -> AppResult<()> {
-        let source = Connection::open(source_path)?;
-        let mut live = self
-            .conn
-            .lock()
-            .map_err(|_| AppError::Message("DB lock poisoned".into()))?;
-        let backup = rusqlite::backup::Backup::new(&source, &mut live)?;
-        backup.run_to_completion(10, std::time::Duration::from_millis(10), None)?;
-        drop(backup);
-        live.execute_batch("PRAGMA foreign_keys = ON;")?;
-        Ok(())
     }
 
     fn receipt_path(&self, stored_name: &str) -> AppResult<PathBuf> {
@@ -1568,77 +1554,6 @@ impl AppDb {
         Ok(())
     }
 
-    pub fn seed_if_empty(&self) -> AppResult<bool> {
-        let counts = self.counts()?;
-        if counts.expenses > 0 || counts.categories > 0 {
-            return Ok(false);
-        }
-        Ok(true)
-    }
-
-    pub fn save_backup_file(
-        &self,
-        dir: &str,
-        content: &str,
-        file_extension: &str,
-    ) -> AppResult<String> {
-        let path = resolve_backup_dir(dir)?;
-        std::fs::create_dir_all(&path)?;
-        let stamp = chrono::Utc::now().format("%Y-%m-%d_%H%M").to_string();
-        let ext = file_extension.trim_start_matches('.');
-        let filename = format!("expense_tracker_backup_{stamp}.{ext}");
-        let file_path = path.join(&filename);
-        std::fs::write(&file_path, content)?;
-        Ok(file_path.to_string_lossy().to_string())
-    }
-
-    pub fn list_backups(&self, dir: &str) -> AppResult<Vec<BackupFileInfo>> {
-        let path = resolve_backup_dir(dir)?;
-        if !path.exists() {
-            return Ok(Vec::new());
-        }
-        let mut files: Vec<BackupFileInfo> = Vec::new();
-        for entry in std::fs::read_dir(&path)? {
-            let entry = entry?;
-            let meta = entry.metadata()?;
-            if !meta.is_file() {
-                continue;
-            }
-            let name = entry.file_name().to_string_lossy().to_string();
-            if !name.starts_with("expense_tracker_backup_") {
-                continue;
-            }
-            if !(name.ends_with(".json") || name.ends_with(".enc.json")) {
-                continue;
-            }
-            let modified_at = meta
-                .modified()
-                .ok()
-                .map(|t| {
-                    let dt: chrono::DateTime<chrono::Utc> = t.into();
-                    dt.format("%Y-%m-%d %H:%M").to_string()
-                })
-                .unwrap_or_else(|| "—".to_string());
-            files.push(BackupFileInfo {
-                encrypted: name.ends_with(".enc.json"),
-                name: name.clone(),
-                path: entry.path().to_string_lossy().to_string(),
-                size_bytes: meta.len(),
-                modified_at,
-            });
-        }
-        files.sort_by(|a, b| b.path.cmp(&a.path));
-        Ok(files)
-    }
-
-    pub fn read_backup_file(&self, file_path: &str) -> AppResult<String> {
-        let path = PathBuf::from(file_path);
-        if !path.is_file() {
-            return Err(AppError::Message("Backup file not found.".into()));
-        }
-        Ok(std::fs::read_to_string(path)?)
-    }
-
     pub fn get_ui_settings(&self) -> AppResult<Option<serde_json::Value>> {
         self.with_conn(|conn| {
             let mut stmt =
@@ -1682,24 +1597,6 @@ impl AppDb {
             input.prev_end.as_deref(),
         ))
     }
-}
-
-fn resolve_backup_dir(dir: &str) -> AppResult<PathBuf> {
-    let trimmed = dir.trim();
-    if trimmed.is_empty() {
-        return Err(AppError::Message("Backup path cannot be empty.".into()));
-    }
-    if trimmed == "~" {
-        if let Ok(home) = std::env::var("HOME") {
-            return Ok(PathBuf::from(home));
-        }
-    }
-    if let Some(rest) = trimmed.strip_prefix("~/") {
-        if let Ok(home) = std::env::var("HOME") {
-            return Ok(PathBuf::from(home).join(rest));
-        }
-    }
-    Ok(PathBuf::from(trimmed))
 }
 
 fn current_base_currency(conn: &Connection) -> String {

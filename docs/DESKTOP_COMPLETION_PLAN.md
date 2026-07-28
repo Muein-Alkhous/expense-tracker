@@ -6,6 +6,20 @@ Complete and release the desktop application for Linux and Windows before beginn
 
 Recurring expenses remain frozen exactly as they are and are excluded from new feature work and acceptance criteria. Existing recurring data must survive full backup replacement, but merge restore will not add or modify recurring rules. Internationalization remains removed.
 
+## Implementation progress
+
+As of 2026-07-28, the secure-backup milestone in section 3 is implemented in the desktop code:
+
+- `.etbackup` archives contain a consistent SQLite snapshot, managed receipts, and a versioned checksum manifest.
+- Manual backups support authenticated Argon2id + AES-256-GCM encryption; automatic archives remain unencrypted and retain the newest 10.
+- Inspection validates archive paths and limits, checksums, SQLite integrity and relationships, schema compatibility, financial records, and receipt content.
+- Restore supports no-write dry run, transactional Merge, and safety-backed staged Replace with startup verification and rollback.
+- Merge preserves current settings and frozen recurring rules. Full replacement preserves the complete backed-up database.
+- Legacy JSON import remains available through a restricted backend command; arbitrary file-content reads are no longer exposed to the frontend.
+- Rust tests cover receipt round trips, modification detection, missing/wrong passwords, dry run, merge, replacement, and rollback staging.
+
+The rebuilt Linux AppImage passes an isolated clean-profile startup/schema smoke test. Interactive UI testing of plain/encrypted archive creation and both restore choices, plus broader failure-injection coverage, remains before this milestone is considered release-complete.
+
 ## Implementation Plan
 
 ### 1. Stabilize persistence and database evolution

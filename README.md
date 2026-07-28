@@ -103,12 +103,14 @@ See [docs/RELEASE.md](docs/RELEASE.md) for manual release steps and [CHANGELOG.m
 
 - **Expenses**, **categories**, **budgets**, and **FX rates** live in SQLite when using Tauri
 - **Soft delete** sets `deleted_at`; use the **Trash** screen to restore or permanently delete
-- **Settings** (theme, language, backup path, etc.) are stored in SQLite on desktop (`app_settings` table)
-- **Backup now** (desktop) writes JSON to your configured folder only — use **Choose folder** to pick the path
-- **Backups on disk** lists real files from that folder; **Restore** loads a selected backup
-- **Automatic backups** run on app start and every 6 hours while the app is open (skipped when encryption is enabled)
+- **Settings** (theme, currency, backup path, etc.) are stored in SQLite on desktop (`app_settings` table)
+- **Backup now** creates a complete `.etbackup` archive containing a consistent SQLite snapshot, receipt images, a versioned manifest, and SHA-256 checksums
+- Manual archives can use Argon2id-derived AES-256-GCM encryption; automatic archives are local and unencrypted
+- Restore validates paths, checksums, SQLite integrity, schema compatibility, records, and receipts before showing a no-write dry-run report
+- **Merge** adds non-conflicting supported records; **Replace** creates a safety archive and stages an atomic restore for the next application start
+- Automatic backups run on app start and every 6 hours while the app is open, retaining the newest 10 automatic archives
 - **Recurring rules** (Settings → Recurring) materialize due expenses into SQLite
 
 ## Status
 
-v0.1.0 — Desktop MVP: SQLite persistence, trash/restore, backups, recurring rules, CSV export, multi-currency. Web-only `npm run dev` remains supported for UI work (localStorage).
+v0.2.0 development — Desktop MVP with SQLite persistence, normalized trash/restore, receipt attachments, secure `.etbackup` archives, dry-run/merge/staged-replace restore, recurring rules, CSV export, and multi-currency. Web-only `npm run dev` remains supported for UI work (localStorage).

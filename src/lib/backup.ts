@@ -80,20 +80,14 @@ export function serializeBackupPayload(
   encrypt: boolean,
   password?: string,
 ): { content: string; extension: string } {
+  if (encrypt) {
+    throw new Error(
+      "Encrypted backups require the desktop application. Browser JSON exports are unencrypted.",
+    );
+  }
   let content = JSON.stringify(payload, null, 2);
   let extension = "json";
-
-  if (encrypt && password) {
-    content = btoa(
-      encodeURIComponent(content)
-        .split("")
-        .map((c, i) =>
-          String.fromCharCode(c.charCodeAt(0) ^ password.charCodeAt(i % password.length)),
-        )
-        .join(""),
-    );
-    extension = "enc.json";
-  }
+  void password;
 
   return { content, extension };
 }
@@ -137,11 +131,21 @@ export async function saveBackupToConfiguredFolder(
   payload: AppBackupPayload,
   encrypt: boolean,
   password?: string,
+  backupKind: "manual" | "automatic" = "manual",
 ): Promise<string> {
+  if (isTauri()) {
+    const result = await api.createEtbackup(
+      backupPath,
+      encrypt ? password : undefined,
+      backupKind,
+    );
+    return result.path;
+  }
   const { content, extension } = serializeBackupPayload(payload, encrypt, password);
-  const path = await api.saveBackupToDisk(backupPath, content, extension);
   useSettings.getState().addBackupRecord(makeBackupRecord(content, extension, encrypt));
-  return path;
+  throw new Error(
+    "Saving to a configured folder is only available in the desktop application.",
+  );
 }
 
 export function parseBackupFileContent(
@@ -177,12 +181,7 @@ export function parseBackupFileContent(
 export async function restoreBackupPayload(payload: AppBackupPayload): Promise<void> {
   if (isTauri()) {
     await api.importBackup(payload);
-    await Promise.all([
-      useExpenses.getState().loadFromDb(),
-      useCategories.getState().loadFromDb(),
-      useBudgets.getState().loadFromDb(),
-      useFxRates.getState().loadFromDb(),
-    ]);
+    await reloadDesktopData();
   } else {
     useExpenses.getState().replaceAll(payload.expenses);
     useCategories.getState().replaceAll(payload.categories);
@@ -206,4 +205,13 @@ export async function restoreBackupPayload(payload: AppBackupPayload): Promise<v
   settings.setEncryptBackups(s.encryptBackups);
   settings.setBudgetAlerts(s.budgetAlerts);
   settings.setWeeklyDigest(s.weeklyDigest);
+}
+
+export async function reloadDesktopData(): Promise<void> {
+  await Promise.all([
+    useExpenses.getState().loadFromDb(),
+    useCategories.getState().loadFromDb(),
+    useBudgets.getState().loadFromDb(),
+    useFxRates.getState().loadFromDb(),
+  ]);
 }

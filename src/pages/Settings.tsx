@@ -11,6 +11,7 @@ import {
   downloadBackupFile,
   formatSize,
   parseBackupFileContent,
+  reloadDesktopData,
   restoreBackupPayload,
   saveBackupToConfiguredFolder,
 } from "@/lib/backup";
@@ -27,6 +28,7 @@ import {
   type ThemeMode,
 } from "@/store/settings";
 import type { PageId } from "@/store/ui";
+import type { RestoreSummary } from "@/lib/api";
 
 const SECTIONS: { id: SettingsSection; label: string }[] = [
   { id: "general", label: "General" },
@@ -47,6 +49,26 @@ const DEFAULT_VIEWS: { id: PageId; label: string }[] = [
 ];
 
 const CURRENCIES = ["USD", "EUR", "TRY", "SYP", "GBP"];
+
+function restoreSummaryText(summary: RestoreSummary): string {
+  const lines = Object.entries(summary.added)
+    .filter(([, count]) => count > 0)
+    .map(([name, count]) => `${name}: ${count} to add`);
+  const conflicts = Object.entries(summary.conflicts)
+    .filter(([, count]) => count > 0)
+    .map(([name, count]) => `${name}: ${count} conflict${count === 1 ? "" : "s"}`);
+  return [
+    lines.length ? lines.join("\n") : "No new records would be added.",
+    conflicts.length ? `\nConflicts/skips:\n${conflicts.join("\n")}` : "",
+    summary.warnings.length ? `\nWarnings:\n${summary.warnings.join("\n")}` : "",
+  ].join("");
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.trim()) return error;
+  return fallback;
+}
 
 export default function Settings() {
   const [section, setSection] = useState<SettingsSection>("general");
@@ -85,6 +107,15 @@ export default function Settings() {
     if (s.encryptBackups) {
       const entered = window.prompt("Enter a password to encrypt this backup:");
       if (!entered) return;
+      if (entered.length < 8) {
+        showStatus("error", "Backup passwords must contain at least 8 characters.");
+        return;
+      }
+      const confirmation = window.prompt("Enter the password again:");
+      if (confirmation !== entered) {
+        showStatus("error", "The backup passwords did not match.");
+        return;
+      }
       password = entered;
     }
     try {
@@ -99,14 +130,13 @@ export default function Settings() {
         s.setLastBackupAt(new Date().toISOString());
         schedulePersistSettings();
         await loadDiskBackups();
-        showStatus("ok", `Backup downloaded successfully. Saved to ${path}`);
+        showStatus("ok", `Complete .etbackup archive saved to ${path}`);
         return;
       }
       downloadBackupFile(payload, s.encryptBackups, password);
       showStatus("ok", "Backup downloaded successfully.");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Backup failed. Please try again.";
-      showStatus("error", msg);
+      showStatus("error", errorMessage(err, "Backup failed. Please try again."));
     }
   }
 
@@ -127,27 +157,99 @@ export default function Settings() {
         await restoreBackupPayload(payload);
         showStatus("ok", "Backup restored. Your data has been reloaded.");
       } catch (err) {
-        showStatus("error", err instanceof Error ? err.message : "Restore failed.");
+        showStatus("error", errorMessage(err, "Restore failed."));
       }
     };
     reader.readAsText(file);
   }
 
-  async function handleRestoreFromPath(filePath: string, encrypted: boolean) {
+  async function handleEtbackupRestore(filePath: string, encryptedHint: boolean) {
     try {
       let password: string | undefined;
-      if (encrypted) {
+      if (encryptedHint) {
         password = window.prompt("Enter the backup password:") ?? undefined;
         if (!password) return;
       }
-      if (!window.confirm("Restore will replace all current data. Continue?")) return;
+      try {
+        await api.inspectEtbackup(filePath, password);
+      } catch (error) {
+        const message = errorMessage(error, "Backup inspection failed.");
+        if (!password && message.toLowerCase().includes("password required")) {
+          password = window.prompt("Enter the backup password:") ?? undefined;
+          if (!password) return;
+          await api.inspectEtbackup(filePath, password);
+        } else {
+          throw error;
+        }
+      }
 
-      const raw = await api.readBackupFile(filePath);
-      const payload = parseBackupFileContent(raw, encrypted, password);
-      await restoreBackupPayload(payload);
-      showStatus("ok", "Backup restored. Your data has been reloaded.");
+      const dryRun = await api.restoreEtbackup(
+        filePath,
+        "dryrun",
+        s.backupPath,
+        password,
+      );
+      const choice = window.prompt(
+        `Backup validation passed. No data has been changed.\n\n${restoreSummaryText(
+          dryRun,
+        )}\n\nType MERGE to add non-conflicting records, REPLACE to stage a full replacement, or leave blank to cancel.`,
+      );
+      const action = choice?.trim().toUpperCase();
+      if (!action) return;
+      if (action !== "MERGE" && action !== "REPLACE") {
+        showStatus("error", "Restore cancelled: enter MERGE or REPLACE exactly.");
+        return;
+      }
+      if (
+        action === "REPLACE" &&
+        !window.confirm(
+          "Replace will create a safety archive and apply the backup when the application is restarted. Continue?",
+        )
+      ) {
+        return;
+      }
+      const result = await api.restoreEtbackup(
+        filePath,
+        action === "MERGE" ? "merge" : "replace",
+        s.backupPath,
+        password,
+      );
+      if (result.restartRequired) {
+        showStatus(
+          "ok",
+          `Replacement is staged safely. Close and reopen Expense Tracker to apply it. Safety backup: ${result.safetyBackupPath ?? "created"}`,
+        );
+      } else {
+        await reloadDesktopData();
+        showStatus("ok", `Backup merged successfully.\n${restoreSummaryText(result)}`);
+      }
     } catch (err) {
-      showStatus("error", err instanceof Error ? err.message : "Restore failed.");
+      showStatus("error", errorMessage(err, "Restore failed."));
+    }
+  }
+
+  async function handleRestoreFromPath(filePath: string, encrypted: boolean) {
+    if (filePath.toLowerCase().endsWith(".etbackup")) {
+      await handleEtbackupRestore(filePath, encrypted);
+      return;
+    }
+    try {
+      let password: string | undefined;
+      if (encrypted) {
+        password = window.prompt("Enter the legacy backup password:") ?? undefined;
+        if (!password) return;
+      }
+      if (
+        !window.confirm(
+          "This is a legacy JSON backup. Restoring it replaces supported current data and cannot restore receipts. Continue?",
+        )
+      ) {
+        return;
+      }
+      await api.importLegacyBackupFile(filePath, password);
+      window.location.reload();
+    } catch (err) {
+      showStatus("error", errorMessage(err, "Legacy restore failed."));
     }
   }
 
@@ -159,7 +261,7 @@ export default function Settings() {
       schedulePersistSettings();
       await loadDiskBackups();
     } catch (err) {
-      showStatus("error", err instanceof Error ? err.message : "Could not choose folder.");
+      showStatus("error", errorMessage(err, "Could not choose folder."));
     }
   }
 
@@ -171,7 +273,7 @@ export default function Settings() {
         const encrypted = path.endsWith(".enc.json") || path.endsWith(".enc");
         await handleRestoreFromPath(path, encrypted);
       } catch (err) {
-        showStatus("error", err instanceof Error ? err.message : "Restore failed.");
+        showStatus("error", errorMessage(err, "Restore failed."));
       }
       return;
     }
@@ -203,7 +305,7 @@ export default function Settings() {
           <div
             role="status"
             className={
-              "mb-4 rounded-control border px-4 py-3 text-sm " +
+              "mb-4 whitespace-pre-line rounded-control border px-4 py-3 text-sm " +
               (status.tone === "ok"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
                 : "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200")
@@ -339,7 +441,11 @@ export default function Settings() {
         {section === "backup" && (
           <SettingsPanel
             title="Backup & Restore"
-            description="Local JSON backups — your data never leaves this device."
+            description={
+              isTauri()
+                ? "Complete .etbackup archives with database, receipts, integrity checks, and optional authenticated encryption."
+                : "Portable JSON data export for browser development."
+            }
           >
             <div className="rounded-card border border-neutral-200 bg-neutral-50/50 p-5 space-y-5 dark:border-neutral-700 dark:bg-neutral-900/90">
               <Field label="Local backup path">
@@ -366,7 +472,7 @@ export default function Settings() {
                 label="Automatic backups"
                 hint={
                   isTauri()
-                    ? "On app start and every 6 hours while open, saves a JSON snapshot to your backup folder when due (skipped when encryption is on)."
+                    ? "On app start and every 6 hours while open, creates a complete local .etbackup archive when due. Automatic archives are unencrypted and the newest 10 are retained."
                     : "On app start, saves a JSON snapshot to your backup folder when due."
                 }
               >
@@ -386,13 +492,25 @@ export default function Settings() {
                   </select>
                 </div>
               </Row>
-              <Row label="Encryption" hint="Encrypt backups with a master password.">
-                <Toggle
-                  checked={s.encryptBackups}
-                  onChange={s.setEncryptBackups}
-                  label="Encrypt backups"
-                />
-              </Row>
+              {isTauri() ? (
+                <Row
+                  label="Manual-backup encryption"
+                  hint="Protect manual archives with Argon2id and AES-256-GCM. Passwords are never stored."
+                >
+                  <Toggle
+                    checked={s.encryptBackups}
+                    onChange={s.setEncryptBackups}
+                    label="Encrypt manual backups"
+                  />
+                </Row>
+              ) : (
+                <Row
+                  label="Encryption"
+                  hint="Authenticated encrypted backups are available in the desktop application."
+                >
+                  <span className="text-xs text-neutral-500">Desktop only</span>
+                </Row>
+              )}
               <Button type="button" className="w-full" onClick={handleBackupNow}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -402,7 +520,7 @@ export default function Settings() {
               </Button>
               <p className="text-xs text-neutral-600 dark:text-neutral-400">
                 {isTauri()
-                  ? "Saves a backup file to the folder above. Recent files are listed from that folder on disk."
+                  ? "Creates a validated archive in the folder above. Restore always runs a read-only analysis before Merge or Replace."
                   : "Downloads a JSON file to your browser's Downloads folder. Use Restore file to pick a backup."}
               </p>
               <div>
@@ -527,8 +645,7 @@ export default function Settings() {
                       await loadDemoData();
                       showStatus("ok", "Demo data loaded — check Dashboard and Expenses.");
                     } catch (err) {
-                      const msg = err instanceof Error ? err.message : "Could not load demo data.";
-                      showStatus("error", msg);
+                      showStatus("error", errorMessage(err, "Could not load demo data."));
                     }
                   }}
                 >

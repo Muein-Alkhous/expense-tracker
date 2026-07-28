@@ -27,6 +27,7 @@ export async function pickBackupFile(): Promise<string | null> {
     multiple: false,
     title: "Choose backup file to restore",
     filters: [
+      { name: "Expense Tracker backup", extensions: ["etbackup"] },
       { name: "JSON backup", extensions: ["json"] },
       { name: "Encrypted backup", extensions: ["enc.json"] },
     ],
