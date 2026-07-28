@@ -18,6 +18,9 @@ import { useUi } from "@/store/ui";
 import { today, daysAgo } from "@/lib/date";
 import { parseQuickAddText } from "@/lib/quickAddParser";
 import { toMajor, toMinor } from "@/lib/money";
+import { api, type ReceiptAttachment } from "@/lib/api";
+import { isTauri } from "@/lib/tauriEnv";
+import { pickReceiptImage } from "@/lib/receiptDialog";
 import { useSettings } from "@/store/settings";
 import type { PaymentMethod } from "@/types";
 
@@ -66,11 +69,26 @@ export default function AddExpenseModal() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [tags, setTags] = useState<string[]>([]);
   const [tagDraft, setTagDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [persistedExpenseId, setPersistedExpenseId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptAttachment | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [receiptPath, setReceiptPath] = useState<string | null>(null);
+  const [removeReceipt, setRemoveReceipt] = useState(false);
+  const [receiptLoading, setReceiptLoading] = useState(false);
 
   const amountRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    setSaving(false);
+    setSaveError(null);
+    setPersistedExpenseId(null);
+    setReceipt(null);
+    setReceiptPreview(null);
+    setReceiptPath(null);
+    setRemoveReceipt(false);
     const active = useCategories.getState().items.filter((c) => c.is_active);
 
     if (editingExpenseId) {
@@ -105,6 +123,46 @@ export default function AddExpenseModal() {
     setTagDraft("");
     setTimeout(() => amountRef.current?.focus(), 50);
   }, [open, editingExpenseId, defaultCurrency, close]);
+
+  useEffect(() => {
+    if (!open || !editingExpenseId || !isTauri()) return;
+    let cancelled = false;
+    setReceiptLoading(true);
+    Promise.all([
+      api.getReceipt(editingExpenseId),
+      api.receiptPreviewDataUrl(editingExpenseId),
+    ])
+      .then(([metadata, preview]) => {
+        if (cancelled) return;
+        setReceipt(metadata);
+        setReceiptPreview(preview);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setSaveError(
+            error instanceof Error ? error.message : "Could not load the receipt.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setReceiptLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, editingExpenseId]);
+
+  async function chooseReceipt() {
+    try {
+      const selected = await pickReceiptImage();
+      if (!selected) return;
+      setReceiptPath(selected);
+      setRemoveReceipt(false);
+      setSaveError(null);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Could not select a receipt.");
+    }
+  }
 
   function applyQuickAdd(text: string) {
     if (!quickAddParser || !text.trim()) return;
@@ -142,8 +200,9 @@ export default function AddExpenseModal() {
     setTags(tags.filter((x) => x !== t));
   }
 
-  function handleSave(e?: FormEvent) {
+  async function handleSave(e?: FormEvent) {
     e?.preventDefault();
+    if (saving) return;
     const value = parseFloat(amount);
     if (!Number.isFinite(value) || value <= 0) {
       amountRef.current?.focus();
@@ -159,12 +218,37 @@ export default function AddExpenseModal() {
       tags: tags.length ? tags : undefined,
     };
 
-    if (editingExpenseId) {
-      updateExpense(editingExpenseId, payload);
-    } else {
-      addExpense(payload);
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const targetId = persistedExpenseId ?? editingExpenseId;
+      const savedExpense = targetId
+        ? await updateExpense(targetId, payload)
+        : await addExpense(payload);
+      if (!targetId) setPersistedExpenseId(savedExpense.id);
+
+      try {
+        if (receiptPath) {
+          await api.attachReceipt(savedExpense.id, receiptPath);
+        } else if (removeReceipt && receipt) {
+          await api.removeReceipt(savedExpense.id);
+        }
+      } catch (receiptError) {
+        setSaveError(
+          `The expense was saved, but its receipt was not: ${
+            receiptError instanceof Error ? receiptError.message : String(receiptError)
+          }. Check the image and try saving again.`,
+        );
+        return;
+      }
+      close();
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : String(error || "Could not save expense."),
+      );
+    } finally {
+      setSaving(false);
     }
-    close();
   }
 
   const dateChips = [
@@ -180,11 +264,15 @@ export default function AddExpenseModal() {
       title={editingExpenseId ? "Edit expense" : "Add Expense"}
       footer={
         <>
-          <Button variant="ghost" onClick={close}>
+          <Button variant="ghost" onClick={close} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={() => handleSave()}>
-            {editingExpenseId ? "Save changes" : "Save Expense"}
+          <Button onClick={() => void handleSave()} disabled={saving}>
+            {saving
+              ? "Saving…"
+              : editingExpenseId
+                ? "Save changes"
+                : "Save Expense"}
             <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium">
               ENTER
             </span>
@@ -193,6 +281,14 @@ export default function AddExpenseModal() {
       }
     >
       <form onSubmit={handleSave} className="space-y-5">
+        {saveError && (
+          <div
+            role="alert"
+            className="rounded-control border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300"
+          >
+            {saveError}
+          </div>
+        )}
         <AmountField
           amount={amount}
           onAmountChange={setAmount}
@@ -300,6 +396,56 @@ export default function AddExpenseModal() {
             placeholder={tags.length ? "" : "Add tags..."}
             className="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-50 dark:placeholder:text-neutral-500"
           />
+        </div>
+
+        <div className="rounded-control border border-neutral-200 p-3 dark:border-neutral-700">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                Receipt image
+              </p>
+              <p className="mt-1 truncate text-xs text-neutral-500 dark:text-neutral-400">
+                {!isTauri()
+                  ? "Receipts are available in the desktop app."
+                  : receiptPath
+                    ? receiptPath.split(/[\\/]/).pop()
+                    : removeReceipt
+                      ? "Receipt will be removed when you save."
+                      : receipt?.original_name ?? "JPEG, PNG, or WebP · up to 10 MB"}
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={!isTauri() || saving || receiptLoading}
+                onClick={() => void chooseReceipt()}
+              >
+                {receipt || receiptPath ? "Replace" : "Attach"}
+              </Button>
+              {(receipt || receiptPath) && !removeReceipt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={saving}
+                  className="text-rose-600 dark:text-rose-400"
+                  onClick={() => {
+                    setReceiptPath(null);
+                    setRemoveReceipt(Boolean(receipt));
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
+          {receiptPreview && !receiptPath && !removeReceipt && (
+            <img
+              src={receiptPreview}
+              alt={`Receipt preview for ${receipt?.original_name ?? "expense"}`}
+              className="mt-3 max-h-40 rounded-control border border-neutral-200 object-contain dark:border-neutral-700"
+            />
+          )}
         </div>
 
         {quickAddParser && !editingExpenseId && (

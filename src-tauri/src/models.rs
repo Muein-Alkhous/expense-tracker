@@ -1,6 +1,7 @@
 // Rust structs mirroring the TypeScript data model (spec section 11).
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Expense {
@@ -70,6 +71,31 @@ pub struct CategoryBudgetRow {
 pub struct BudgetsSnapshot {
     pub total_monthly_minor: i64,
     pub items: Vec<CategoryBudgetRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Budget {
+    pub id: String,
+    pub category_id: Option<String>,
+    pub limit_amount_minor: i64,
+    pub currency_code: String,
+    pub period_type: String,
+    pub created_at: String,
+    pub updated_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deleted_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceiptAttachment {
+    pub id: String,
+    pub expense_id: String,
+    pub original_name: String,
+    pub mime_type: String,
+    pub size_bytes: i64,
+    pub sha256: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,6 +177,62 @@ pub struct BackupFileInfo {
     pub size_bytes: u64,
     pub modified_at: String,
     pub encrypted: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrashSnapshot {
+    pub expenses: Vec<Expense>,
+    pub categories: Vec<Category>,
+    pub budgets: Vec<Budget>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackupArtifact {
+    pub path: String,
+    pub size_bytes: u64,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackupManifest {
+    pub format_version: i32,
+    pub app_version: String,
+    pub schema_version: i32,
+    pub created_at: String,
+    pub backup_kind: String,
+    pub base_currency: String,
+    pub encrypted: bool,
+    pub record_counts: BTreeMap<String, i64>,
+    pub artifacts: Vec<BackupArtifact>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackupInspection {
+    pub file_name: String,
+    pub encrypted: bool,
+    pub manifest: BackupManifest,
+    pub integrity_ok: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RestoreMode {
+    DryRun,
+    Merge,
+    Replace,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RestoreSummary {
+    pub mode: RestoreMode,
+    pub added: BTreeMap<String, i64>,
+    pub skipped: BTreeMap<String, i64>,
+    pub safety_backup_path: Option<String>,
+    pub restart_required: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

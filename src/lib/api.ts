@@ -51,6 +51,34 @@ export interface BackupFileInfo {
   encrypted: boolean;
 }
 
+export interface Budget {
+  id: string;
+  category_id?: string | null;
+  limit_amount_minor: number;
+  currency_code: string;
+  period_type: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface TrashSnapshot {
+  expenses: Expense[];
+  categories: Category[];
+  budgets: Budget[];
+}
+
+export interface ReceiptAttachment {
+  id: string;
+  expense_id: string;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  sha256: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface GetInsightsInput {
   periodStart: string;
   periodEnd: string;
@@ -83,6 +111,7 @@ export const api = {
   restoreExpense: (id: string) => call<void>("restore_expense", { id }),
   permanentDeleteExpense: (id: string) => call<void>("permanent_delete_expense", { id }),
   emptyTrash: () => call<void>("empty_trash"),
+  listTrash: () => call<TrashSnapshot>("list_trash"),
   listCategories: () => call<Category[]>("list_categories"),
   createCategory: (input: { name: string; color: string; icon: string }) =>
     call<Category>("create_category", { input }),
@@ -94,8 +123,14 @@ export const api = {
     is_active: boolean,
   ) => call<Category>("update_category", { id, name, color, icon, is_active }),
   deleteCategory: (id: string) => call<void>("delete_category", { id }),
+  restoreCategory: (id: string) => call<void>("restore_category", { id }),
+  permanentDeleteCategory: (id: string) =>
+    call<void>("permanent_delete_category", { id }),
   getBudgets: () => call<BudgetsSnapshot>("get_budgets"),
   setBudgets: (snapshot: BudgetsSnapshot) => call<void>("set_budgets", { snapshot }),
+  restoreBudget: (id: string) => call<void>("restore_budget", { id }),
+  permanentDeleteBudget: (id: string) =>
+    call<void>("permanent_delete_budget", { id }),
   listFxRates: () => call<FxRate[]>("list_fx_rates"),
   upsertFxRate: (input: {
     from_code: string;
@@ -125,4 +160,12 @@ export const api = {
     call<void>("set_ui_settings", { settings }),
   getInsights: (input: GetInsightsInput) =>
     call<Insight[]>("get_insights", { input }),
+  getReceipt: (expenseId: string) =>
+    call<ReceiptAttachment | null>("get_receipt", { expenseId }),
+  attachReceipt: (expenseId: string, sourcePath: string) =>
+    call<ReceiptAttachment>("attach_receipt", { expenseId, sourcePath }),
+  receiptPreviewDataUrl: (expenseId: string) =>
+    call<string | null>("receipt_preview_data_url", { expenseId }),
+  removeReceipt: (expenseId: string) =>
+    call<void>("remove_receipt", { expenseId }),
 };

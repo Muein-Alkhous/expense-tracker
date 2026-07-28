@@ -21,6 +21,12 @@ tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.32", features = ["backup", "bundled"] }
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["clock", "serde"] }
+base64 = "0.22"
+sha2 = "0.10"
+aes-gcm = "0.10"
+argon2 = "0.5"
+rand = "0.8"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }

@@ -23,8 +23,8 @@ interface ExpensesState {
   items: Expense[];
   hydrated: boolean;
   loadFromDb: () => Promise<void>;
-  addExpense: (input: NewExpenseInput) => Promise<void>;
-  updateExpense: (id: string, input: NewExpenseInput) => Promise<void>;
+  addExpense: (input: NewExpenseInput) => Promise<Expense>;
+  updateExpense: (id: string, input: NewExpenseInput) => Promise<Expense>;
   deleteExpense: (id: string) => Promise<void>;
   restoreExpense: (id: string) => Promise<void>;
   permanentDeleteExpense: (id: string) => Promise<void>;
@@ -32,7 +32,7 @@ interface ExpensesState {
   replaceAll: (items: Expense[]) => void;
 }
 
-const storeImpl = (set: (partial: Partial<ExpensesState> | ((s: ExpensesState) => Partial<ExpensesState>)) => void, _get: () => ExpensesState): ExpensesState => ({
+const storeImpl = (set: (partial: Partial<ExpensesState> | ((s: ExpensesState) => Partial<ExpensesState>)) => void, get: () => ExpensesState): ExpensesState => ({
   items: isTauri() ? [] : SEED_EXPENSES,
   hydrated: !isTauri(),
 
@@ -49,20 +49,18 @@ const storeImpl = (set: (partial: Partial<ExpensesState> | ((s: ExpensesState) =
     if (isTauri()) {
       const expense = await api.createExpense(input);
       set((s) => ({ items: [expense, ...s.items] }));
-      return;
+      return expense;
     }
-    set((s) => ({
-      items: [
-        {
-          id: crypto.randomUUID(),
-          is_recurring: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          ...input,
-        },
-        ...s.items,
-      ],
-    }));
+    const now = new Date().toISOString();
+    const expense: Expense = {
+      id: crypto.randomUUID(),
+      is_recurring: false,
+      created_at: now,
+      updated_at: now,
+      ...input,
+    };
+    set((s) => ({ items: [expense, ...s.items] }));
+    return expense;
   },
 
   updateExpense: async (id, input) => {
@@ -71,26 +69,22 @@ const storeImpl = (set: (partial: Partial<ExpensesState> | ((s: ExpensesState) =
       set((s) => ({
         items: s.items.map((e) => (e.id === id ? expense : e)),
       }));
-      return;
+      return expense;
     }
     const now = new Date().toISOString();
+    const existing = get().items.find((expense) => expense.id === id);
+    if (!existing) {
+      throw new Error("Expense not found.");
+    }
+    const expense: Expense = {
+      ...existing,
+      ...input,
+      updated_at: now,
+    };
     set((s) => ({
-      items: s.items.map((e) =>
-        e.id === id
-          ? {
-              ...e,
-              amount_minor: input.amount_minor,
-              currency_code: input.currency_code,
-              category_id: input.category_id,
-              date: input.date,
-              note: input.note,
-              payment_method: input.payment_method,
-              tags: input.tags,
-              updated_at: now,
-            }
-          : e,
-      ),
+      items: s.items.map((item) => (item.id === id ? expense : item)),
     }));
+    return expense;
   },
 
   deleteExpense: async (id) => {

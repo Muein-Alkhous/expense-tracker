@@ -7,7 +7,7 @@ use crate::error::AppResult;
 use crate::models::{
     AppBackupPayload, BackupFileInfo, BudgetsSnapshot, Category, DbCounts, Expense, FxRate,
     GetInsightsInput, Insight, MaterializeRecurringResult, NewCategoryInput, NewExpenseInput,
-    NewFxRateInput, NewRecurringRuleInput, RecurringRule,
+    NewFxRateInput, NewRecurringRuleInput, ReceiptAttachment, RecurringRule, TrashSnapshot,
 };
 
 #[tauri::command]
@@ -55,6 +55,11 @@ pub fn empty_trash(db: State<'_, AppDb>) -> AppResult<()> {
 }
 
 #[tauri::command]
+pub fn list_trash(db: State<'_, AppDb>) -> AppResult<TrashSnapshot> {
+    db.list_trash()
+}
+
+#[tauri::command]
 pub fn list_categories(db: State<'_, AppDb>) -> AppResult<Vec<Category>> {
     db.list_categories()
 }
@@ -82,6 +87,16 @@ pub fn delete_category(db: State<'_, AppDb>, id: String) -> AppResult<()> {
 }
 
 #[tauri::command]
+pub fn restore_category(db: State<'_, AppDb>, id: String) -> AppResult<()> {
+    db.restore_category(&id)
+}
+
+#[tauri::command]
+pub fn permanent_delete_category(db: State<'_, AppDb>, id: String) -> AppResult<()> {
+    db.permanent_delete_category(&id)
+}
+
+#[tauri::command]
 pub fn get_budgets(db: State<'_, AppDb>) -> AppResult<BudgetsSnapshot> {
     db.get_budgets()
 }
@@ -89,6 +104,16 @@ pub fn get_budgets(db: State<'_, AppDb>) -> AppResult<BudgetsSnapshot> {
 #[tauri::command]
 pub fn set_budgets(db: State<'_, AppDb>, snapshot: BudgetsSnapshot) -> AppResult<()> {
     db.set_budgets(&snapshot)
+}
+
+#[tauri::command]
+pub fn restore_budget(db: State<'_, AppDb>, id: String) -> AppResult<()> {
+    db.restore_budget(&id)
+}
+
+#[tauri::command]
+pub fn permanent_delete_budget(db: State<'_, AppDb>, id: String) -> AppResult<()> {
+    db.permanent_delete_budget(&id)
 }
 
 #[tauri::command]
@@ -175,3 +200,32 @@ pub fn get_insights(db: State<'_, AppDb>, input: GetInsightsInput) -> AppResult<
     db.get_insights(input)
 }
 
+#[tauri::command]
+pub fn get_receipt(
+    db: State<'_, AppDb>,
+    expense_id: String,
+) -> AppResult<Option<ReceiptAttachment>> {
+    db.get_receipt(&expense_id)
+}
+
+#[tauri::command]
+pub fn attach_receipt(
+    db: State<'_, AppDb>,
+    expense_id: String,
+    source_path: String,
+) -> AppResult<ReceiptAttachment> {
+    db.attach_receipt(&expense_id, &source_path)
+}
+
+#[tauri::command]
+pub fn receipt_preview_data_url(
+    db: State<'_, AppDb>,
+    expense_id: String,
+) -> AppResult<Option<String>> {
+    db.receipt_preview_data_url(&expense_id)
+}
+
+#[tauri::command]
+pub fn remove_receipt(db: State<'_, AppDb>, expense_id: String) -> AppResult<()> {
+    db.remove_receipt(&expense_id)
+}

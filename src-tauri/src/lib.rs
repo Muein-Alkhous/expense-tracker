@@ -32,12 +32,17 @@ pub fn run() {
             commands::restore_expense,
             commands::permanent_delete_expense,
             commands::empty_trash,
+            commands::list_trash,
             commands::list_categories,
             commands::create_category,
             commands::update_category,
             commands::delete_category,
+            commands::restore_category,
+            commands::permanent_delete_category,
             commands::get_budgets,
             commands::set_budgets,
+            commands::restore_budget,
+            commands::permanent_delete_budget,
             commands::list_fx_rates,
             commands::upsert_fx_rate,
             commands::remove_fx_rate,
@@ -53,6 +58,10 @@ pub fn run() {
             commands::get_ui_settings,
             commands::set_ui_settings,
             commands::get_insights,
+            commands::get_receipt,
+            commands::attach_receipt,
+            commands::receipt_preview_data_url,
+            commands::remove_receipt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
