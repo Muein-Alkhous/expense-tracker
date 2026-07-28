@@ -84,8 +84,8 @@ src-tauri/target/release/bundle/appimage/*.AppImage
 4. Tag and publish (example):
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds Linux bundles on tag push and publishes a GitHub Release with `.deb` and `.AppImage` assets attached.

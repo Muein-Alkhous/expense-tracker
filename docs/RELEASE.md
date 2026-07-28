@@ -1,4 +1,4 @@
-# Release v0.1.0 (manual steps)
+# Release v0.2.0 (manual steps)
 
 If GitHub Actions is unavailable, publish locally:
 
@@ -11,12 +11,12 @@ npm run tauri build
 Create the tag and GitHub release:
 
 ```bash
-git tag -a v0.1.0 -m "Expense Tracker 0.1.0"
-git push origin v0.1.0
-gh release create v0.1.0 \
+git tag -a v0.2.0 -m "Expense Tracker 0.2.0"
+git push origin v0.2.0
+gh release create v0.2.0 \
   src-tauri/target/release/bundle/deb/*.deb \
   src-tauri/target/release/bundle/appimage/*.AppImage \
-  --title "v0.1.0" \
+  --title "v0.2.0" \
   --notes-file CHANGELOG.md
 ```
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automated smoke checks for v0.1.0 (launch + DB schema). Run interactive UI steps in docs/SMOKE_TEST.md.
+# Automated smoke checks for v0.2.0 (launch + DB schema). Run interactive UI steps in docs/SMOKE_TEST.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,15 +7,15 @@ ART="$ROOT/release-artifacts"
 DB="${XDG_DATA_HOME:-$HOME/.local/share}/com.expensetracker.app/expense_tracker.db"
 
 echo "== Bundle artifacts =="
-test -f "$ART/Expense Tracker_0.1.0_amd64.deb"
-test -x "$ART/Expense Tracker_0.1.0_amd64.AppImage"
-file "$ART/Expense Tracker_0.1.0_amd64.AppImage" | grep -q 'ELF 64-bit'
+test -f "$ART/Expense Tracker_0.2.0_amd64.deb"
+test -x "$ART/Expense Tracker_0.2.0_amd64.AppImage"
+file "$ART/Expense Tracker_0.2.0_amd64.AppImage" | grep -q 'ELF 64-bit'
 
 echo "== App launch (5s) =="
 if [[ -z "${DISPLAY:-}" ]]; then
   echo "WARN: DISPLAY unset; skipping GUI launch"
 else
-  timeout 5 "$ART/Expense Tracker_0.1.0_amd64.AppImage" &
+  timeout 5 "$ART/Expense Tracker_0.2.0_amd64.AppImage" &
   pid=$!
   sleep 3
   kill "$pid" 2>/dev/null || true

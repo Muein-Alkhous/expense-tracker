@@ -1,4 +1,4 @@
-# Smoke test checklist (v0.1.0)
+# Smoke test checklist (v0.2.0)
 
 Run after `npm run tauri build` on a clean profile or after deleting the app data DB.
 
