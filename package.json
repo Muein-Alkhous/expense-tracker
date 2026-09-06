@@ -11,7 +11,8 @@
     "tauri:build:windows": "tauri build --bundles nsis",
     "tauri:android:init": "tauri android init --ci",
     "tauri:android:dev": "tauri android dev",
-    "tauri:android:build": "tauri android build --debug --apk --ci",
+    "tauri:android:build": "tauri android build --debug --apk --target aarch64 --ci",
+    "tauri:android:build:universal": "tauri android build --debug --apk --ci",
     "tauri:deps": "bash scripts/install-tauri-linux-deps.sh"
   },
   "dependencies": {

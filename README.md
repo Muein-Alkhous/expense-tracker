@@ -101,8 +101,18 @@ npm run tauri:android:init
 npm run tauri:android:build
 ```
 
-The `Android APK` GitHub Actions workflow performs the same initialization and
-build on Linux and uploads an installable debug APK with a SHA-256 checksum.
+The default Android build produces an optimized, debug-signed ARM64 APK. ARM64
+covers most physical Android phones while avoiding the size cost of bundling
+emulator and legacy CPU architectures. The `Android APK` GitHub Actions
+workflow rejects APKs larger than 100 MiB and uploads the APK with its SHA-256
+checksum as the `expense-tracker-android-arm64-debug` artifact.
+
+To create a universal development APK for ARM64, ARMv7, x86, and x86_64, run:
+
+```bash
+npm run tauri:android:build:universal
+```
+
 The phone UI uses bottom navigation, touch-sized controls, safe-area spacing,
 and responsive versions of every existing screen.
 
