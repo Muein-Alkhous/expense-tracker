@@ -20,6 +20,7 @@ src-tauri/gen/
 *.sqlite-journal
 backups/
 Backups/*.json
+Backups/*.etbackup
 release-artifacts/
 
 # Editor / OS

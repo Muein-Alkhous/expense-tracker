@@ -69,6 +69,26 @@ npm run build          # frontend only
 npm run tauri build    # desktop installer (requires system deps above)
 ```
 
+### Windows installer
+
+Build the unsigned Windows 10/11 x64 NSIS installer on Windows:
+
+```powershell
+npm ci
+npm run tauri:build:windows
+```
+
+The setup executable is written to:
+
+```text
+src-tauri/target/release/bundle/nsis/*-setup.exe
+```
+
+The `Windows Installer` GitHub Actions workflow builds the same installer on a
+Windows runner and uploads the `.exe` together with its SHA-256 checksum. Since
+the installer is not code-signed, Microsoft SmartScreen may show a warning.
+The installer uses WebView2's downloaded bootstrapper when WebView2 is missing.
+
 Installers are written to:
 
 ```text
