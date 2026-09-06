@@ -25,7 +25,7 @@ export default function Sidebar({ activeId, onNavigate }: SidebarProps) {
   return (
     <aside
       aria-label="Primary navigation"
-      className="flex h-screen w-60 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+      className="hidden h-screen w-60 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:flex"
     >
       <div className="flex items-center gap-2 px-5 py-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white">

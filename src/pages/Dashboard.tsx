@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import KpiCard from "@/components/KpiCard";
 import ExpenseRow from "@/components/ExpenseRow";
+import ExpenseListItem from "@/components/ExpenseListItem";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { formatChartDate, formatDate, isThisWeek, toDateKey } from "@/lib/date";
 import FxMissingBanner from "@/components/FxMissingBanner";
@@ -106,7 +107,7 @@ export default function Dashboard() {
   }, [items, period, baseCurrency, fxRates, todayLabel]);
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-5 p-4 sm:space-y-6 sm:p-8">
       <FxMissingBanner count={stats.fxSkipped} baseCurrency={baseCurrency} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -197,7 +198,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <section className="col-span-1 rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:col-span-3">
+        <section className="col-span-1 min-w-0 overflow-hidden rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:col-span-3">
           <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
               Recent transactions
@@ -209,7 +210,15 @@ export default function Dashboard() {
               View all
             </button>
           </header>
-          <table className="w-full">
+          <ul className="lg:hidden">
+            {filterByPeriod(items, period)
+              .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+              .slice(0, 5)
+              .map((expense) => (
+                <ExpenseListItem key={expense.id} expense={expense} baseCurrency={baseCurrency} />
+              ))}
+          </ul>
+          <table className="hidden w-full lg:table">
             <thead>
               <tr className="text-[11px] uppercase tracking-wider text-neutral-500">
                 <th className="px-4 py-2 text-start font-medium">Date</th>

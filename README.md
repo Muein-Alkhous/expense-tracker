@@ -89,6 +89,23 @@ Windows runner and uploads the `.exe` together with its SHA-256 checksum. Since
 the installer is not code-signed, Microsoft SmartScreen may show a warning.
 The installer uses WebView2's downloaded bootstrapper when WebView2 is missing.
 
+### Android application
+
+The Android build reuses the local SQLite database and the same React/Rust
+application logic. On a machine with the Android SDK, NDK, Java 17+, and the
+Android Rust targets installed:
+
+```bash
+npm ci
+npm run tauri:android:init
+npm run tauri:android:build
+```
+
+The `Android APK` GitHub Actions workflow performs the same initialization and
+build on Linux and uploads an installable debug APK with a SHA-256 checksum.
+The phone UI uses bottom navigation, touch-sized controls, safe-area spacing,
+and responsive versions of every existing screen.
+
 Installers are written to:
 
 ```text

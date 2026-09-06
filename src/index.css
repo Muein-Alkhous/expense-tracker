@@ -12,6 +12,17 @@
   }
   body {
     @apply font-sans antialiased;
+    min-width: 320px;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
   }
 
   /* Native selects: readable options in dark mode (Chrome / Firefox) */

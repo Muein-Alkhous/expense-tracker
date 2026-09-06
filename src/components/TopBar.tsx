@@ -15,9 +15,9 @@ export default function TopBar({ title, showPeriod = false }: TopBarProps) {
   const setDashboardPeriod = useUi((s) => s.setDashboardPeriod);
 
   return (
-    <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-8 py-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
+    <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/95 sm:px-8 lg:static lg:bg-white lg:py-4 lg:dark:bg-neutral-900">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+        <h1 className="truncate text-lg font-semibold text-neutral-900 dark:text-neutral-50 sm:text-xl">
           {title}
         </h1>
         {showPeriod && (
@@ -28,7 +28,7 @@ export default function TopBar({ title, showPeriod = false }: TopBarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="hidden items-center gap-2 lg:flex">
         <Button onClick={openAddExpense}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14M5 12h14" />

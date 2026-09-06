@@ -81,7 +81,7 @@ export default function Expenses() {
   const expenseWord = filtered.length === 1 ? "expense" : "expenses";
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="rounded-card border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 p-4 dark:border-neutral-800">
           <SearchInput

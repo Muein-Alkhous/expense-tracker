@@ -142,7 +142,7 @@ export default function Trash() {
     deleted.length + (trash?.categories.length ?? 0) + (trash?.budgets.length ?? 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Trash</h1>

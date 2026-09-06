@@ -32,7 +32,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -41,10 +41,10 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`${widthClass} max-w-[calc(100vw-2rem)] rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900`}
+        className={`${widthClass} flex max-h-[calc(100dvh-0.75rem)] max-w-full flex-col rounded-t-2xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900 sm:max-w-[calc(100vw-2rem)] sm:rounded-xl`}
       >
         {title && (
-          <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-800">
+          <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4 dark:border-neutral-800 sm:px-6">
             <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">
               {title}
             </h2>
@@ -59,9 +59,9 @@ export default function Modal({
             </button>
           </div>
         )}
-        <div className="px-6 py-5">{children}</div>
+        <div className="overflow-y-auto px-4 py-5 sm:px-6">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-6 py-3 dark:border-neutral-800">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-200 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] dark:border-neutral-800 sm:px-6 sm:pb-3">
             {footer}
           </div>
         )}

@@ -281,7 +281,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex h-full min-h-0 gap-8 p-8">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 sm:p-8 lg:flex-row lg:gap-8">
       <nav className="hidden w-44 shrink-0 flex-col gap-0.5 sm:flex">
         {SECTIONS.map((item) => (
           <button

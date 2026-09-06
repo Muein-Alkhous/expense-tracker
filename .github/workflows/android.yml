@@ -1,0 +1,72 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/android-app
+
+jobs:
+  build-android:
+    name: Build Android debug APK
+    runs-on: ubuntu-22.04
+    env:
+      NDK_VERSION: 27.2.12479018
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and NDK
+        shell: bash
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;$NDK_VERSION"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and check frontend
+        run: npm run build
+
+      - name: Check Rust
+        run: |
+          cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+          cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+          cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Initialize Android project
+        run: npm run tauri:android:init
+
+      - name: Build installable APK
+        run: npm run tauri:android:build
+
+      - name: Collect APK and checksum
+        shell: bash
+        run: |
+          mkdir -p android-artifacts
+          find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' -exec cp {} android-artifacts/ \;
+          cd android-artifacts
+          sha256sum *.apk > SHA256SUMS
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: expense-tracker-android-debug
+          if-no-files-found: error
+          path: android-artifacts/

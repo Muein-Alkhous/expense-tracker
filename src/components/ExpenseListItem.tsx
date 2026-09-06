@@ -42,24 +42,24 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
   }
 
   return (
-    <li className="grid grid-cols-12 items-center gap-3 border-t border-neutral-100 px-6 py-3 text-sm transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50">
-      <div className="col-span-1 text-neutral-500">{formatDate(expense.date, "MMM D")}</div>
-      <div className="col-span-2 inline-flex items-center gap-2 text-neutral-700 dark:text-neutral-300">
+    <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-neutral-100 px-4 py-4 text-sm transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50 sm:px-6 lg:grid-cols-12 lg:py-3">
+      <div className="col-span-1 text-xs text-neutral-500 lg:text-sm">{formatDate(expense.date, "MMM D")}</div>
+      <div className="col-span-1 inline-flex items-center justify-self-end gap-2 text-neutral-700 dark:text-neutral-300 lg:col-span-2 lg:justify-self-auto">
         <span
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: category?.color ?? "#737373" }}
         />
         <span className="min-w-0 truncate">{category?.name ?? "Uncategorized"}</span>
       </div>
-      <div className="col-span-4 truncate text-neutral-700 dark:text-neutral-300">
+      <div className="col-span-1 truncate text-neutral-700 dark:text-neutral-300 lg:col-span-4">
         {expense.note ?? <span className="italic text-neutral-400">No note</span>}
       </div>
-      <div className="col-span-2 capitalize text-neutral-500">
+      <div className="hidden capitalize text-neutral-500 lg:col-span-2 lg:block">
         {expense.payment_method
           ? (PAYMENT_LABELS[expense.payment_method] ?? expense.payment_method)
           : "—"}
       </div>
-      <div className="col-span-2 text-end tabular-nums">
+      <div className="col-span-1 text-end tabular-nums lg:col-span-2">
         <div className="font-medium text-neutral-900 dark:text-neutral-50">
           {formatMinor(expense.amount_minor, expense.currency_code)}
         </div>
@@ -72,12 +72,12 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
           <div className="text-xs text-amber-500 dark:text-amber-400">No FX rate</div>
         )}
       </div>
-      <div className="col-span-1 flex items-center justify-end gap-1">
+      <div className="col-span-2 flex items-center justify-end gap-2 lg:col-span-1 lg:gap-1">
         <button
           type="button"
           aria-label="Edit expense"
           onClick={() => openEditExpense(expense.id)}
-          className="rounded-control p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-accent dark:hover:bg-neutral-800 dark:hover:text-accent"
+          className="rounded-control p-2.5 text-neutral-400 hover:bg-neutral-100 hover:text-accent dark:hover:bg-neutral-800 dark:hover:text-accent lg:p-1.5"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
@@ -88,7 +88,7 @@ export default function ExpenseListItem({ expense, baseCurrency }: ExpenseListIt
           type="button"
           aria-label="Delete expense"
           onClick={handleDelete}
-          className="rounded-control p-1.5 text-neutral-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
+          className="rounded-control p-2.5 text-neutral-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 lg:p-1.5"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18" />

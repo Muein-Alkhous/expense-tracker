@@ -176,7 +176,7 @@ export default function Categories() {
   const insightStats = insightCategory ? stats.get(insightCategory.id) : undefined;
 
   return (
-    <div className="flex h-full flex-col p-8">
+    <div className="flex h-full flex-col p-4 sm:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
           <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-neutral-400 dark:text-neutral-500">

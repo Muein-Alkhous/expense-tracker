@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
+import MobileNav from "@/components/MobileNav";
 import { useAutoBackupInterval } from "@/hooks/useAutoBackupInterval";
 import { useDbBootstrap } from "@/hooks/useDbBootstrap";
 import { useSettingsSync } from "@/hooks/useSettingsSync";
@@ -56,14 +57,14 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
+    <div className="flex h-dvh min-h-dvh bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
       <Sidebar activeId={currentPage} onNavigate={(id) => setCurrentPage(id as PageId)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           title={PAGE_TITLES[currentPage]}
           showPeriod={currentPage === "dashboard"}
         />
-        <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-950">
+        <main className="flex-1 overflow-y-auto bg-neutral-50 pb-24 dark:bg-neutral-950 lg:pb-0">
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "expenses" && <Expenses />}
           {currentPage === "trash" && <Trash />}
@@ -76,6 +77,7 @@ export default function App() {
       <AddExpenseModal />
       <NewBudgetModal />
       <ExportCsvModal />
+      <MobileNav />
     </div>
   );
 }

@@ -159,7 +159,7 @@ export default function Reports() {
   const trendGradientId = isDark ? "trendFillDark" : "trendFill";
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-5 p-4 sm:space-y-6 sm:p-8">
       <FxMissingBanner count={fxSkipped} baseCurrency={baseCurrency} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
